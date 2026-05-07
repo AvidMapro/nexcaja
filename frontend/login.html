@@ -7,292 +7,113 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --text-xs: clamp(0.75rem,.7rem + .25vw,.875rem);
-  --text-sm: clamp(0.875rem,.8rem + .35vw,1rem);
-  --text-base: clamp(1rem,.95rem + .25vw,1.125rem);
-  --text-lg: clamp(1.125rem,1rem + .75vw,1.5rem);
-  --text-xl: clamp(1.5rem,1.2rem + 1.25vw,2.25rem);
+  --text-xs:clamp(0.75rem,.7rem + .25vw,.875rem);--text-sm:clamp(0.875rem,.8rem + .35vw,1rem);
+  --text-base:clamp(1rem,.95rem + .25vw,1.125rem);--text-lg:clamp(1.125rem,1rem + .75vw,1.5rem);
+  --text-xl:clamp(1.5rem,1.2rem + 1.25vw,2.25rem);
   --space-1:.25rem;--space-2:.5rem;--space-3:.75rem;--space-4:1rem;
-  --space-5:1.25rem;--space-6:1.5rem;--space-8:2rem;--space-10:2.5rem;--space-12:3rem;
+  --space-5:1.25rem;--space-6:1.5rem;--space-8:2rem;--space-10:2.5rem;
   --radius-sm:.375rem;--radius-md:.5rem;--radius-lg:.75rem;--radius-xl:1rem;--radius-full:9999px;
-  --transition-interactive:180ms cubic-bezier(0.16,1,0.3,1);
+  --transition:180ms cubic-bezier(0.16,1,0.3,1);
   --font-body:'Inter','Helvetica Neue',sans-serif;
   --font-mono:'JetBrains Mono','Courier New',monospace;
 }
-[data-theme="dark"] {
-  --color-bg:#0a0e1a;
-  --color-surface:#111827;
-  --color-surface-2:#1c2333;
-  --color-surface-offset:#161d2e;
-  --color-surface-dynamic:#2a3347;
-  --color-divider:#1e2a3d;
-  --color-border:#2e3a52;
-  --color-text:#e2e8f4;
-  --color-text-muted:#7a8aa8;
-  --color-text-faint:#3a4a62;
-  --color-text-inverse:#0a0e1a;
-  --color-primary:#3b82f6;
-  --color-primary-hover:#2563eb;
-  --color-primary-highlight:#1e3a5f;
-  --color-success:#22c55e;
-  --color-success-highlight:#14532d;
-  --color-error:#ef4444;
-  --color-error-highlight:#450a0a;
-  --color-warning:#f59e0b;
-  --shadow-sm:0 1px 2px rgba(0,0,0,.4);
-  --shadow-md:0 4px 12px rgba(0,0,0,.5);
-  --shadow-lg:0 12px 32px rgba(0,0,0,.7);
-  --shadow-xl:0 24px 64px rgba(0,0,0,.8);
+[data-theme="dark"]{
+  --bg:#0a0e1a;--surface:#111827;--surface-2:#1c2333;--surface-off:#161d2e;
+  --surface-dyn:#2a3347;--divider:#1e2a3d;--border:#2e3a52;
+  --text:#e2e8f4;--text-muted:#7a8aa8;--text-faint:#3a4a62;--text-inv:#0a0e1a;
+  --primary:#3b82f6;--primary-h:#2563eb;--primary-hl:#1e3a5f;
+  --success:#22c55e;--success-hl:#14532d;--error:#ef4444;--error-hl:#450a0a;
+  --warning:#f59e0b;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.4);--shadow-md:0 4px 12px rgba(0,0,0,.5);
+  --shadow-lg:0 12px 32px rgba(0,0,0,.7);--shadow-xl:0 24px 64px rgba(0,0,0,.8);
 }
-[data-theme="light"] {
-  --color-bg:#f0f4f8;
-  --color-surface:#ffffff;
-  --color-surface-2:#f8fafc;
-  --color-surface-offset:#f1f5f9;
-  --color-surface-dynamic:#e2e8f0;
-  --color-divider:#e2e8f0;
-  --color-border:#cbd5e1;
-  --color-text:#1e293b;
-  --color-text-muted:#64748b;
-  --color-text-faint:#94a3b8;
-  --color-text-inverse:#ffffff;
-  --color-primary:#2563eb;
-  --color-primary-hover:#1d4ed8;
-  --color-primary-highlight:#dbeafe;
-  --color-success:#16a34a;
-  --color-success-highlight:#dcfce7;
-  --color-error:#dc2626;
-  --color-error-highlight:#fee2e2;
-  --color-warning:#d97706;
-  --shadow-sm:0 1px 2px rgba(0,0,0,.06);
-  --shadow-md:0 4px 12px rgba(0,0,0,.08);
-  --shadow-lg:0 12px 32px rgba(0,0,0,.12);
-  --shadow-xl:0 24px 64px rgba(0,0,0,.16);
+[data-theme="light"]{
+  --bg:#f0f4f8;--surface:#fff;--surface-2:#f8fafc;--surface-off:#f1f5f9;
+  --surface-dyn:#e2e8f0;--divider:#e2e8f0;--border:#cbd5e1;
+  --text:#1e293b;--text-muted:#64748b;--text-faint:#94a3b8;--text-inv:#fff;
+  --primary:#2563eb;--primary-h:#1d4ed8;--primary-hl:#dbeafe;
+  --success:#16a34a;--success-hl:#dcfce7;--error:#dc2626;--error-hl:#fee2e2;
+  --warning:#d97706;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.06);--shadow-md:0 4px 12px rgba(0,0,0,.08);
+  --shadow-lg:0 12px 32px rgba(0,0,0,.12);--shadow-xl:0 24px 64px rgba(0,0,0,.16);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
-body{
-  min-height:100dvh;
-  font-family:var(--font-body);
-  font-size:var(--text-sm);
-  color:var(--color-text);
-  background:var(--color-bg);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  position:relative;
-  overflow:hidden;
-}
+html{-webkit-font-smoothing:antialiased}
+body{min-height:100dvh;font-family:var(--font-body);font-size:var(--text-sm);color:var(--text);background:var(--bg);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
 button{cursor:pointer;background:none;border:none;font:inherit;color:inherit}
 input{font:inherit;color:inherit}
-::selection{background:color-mix(in oklch,var(--color-primary) 25%,transparent)}
-:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px;border-radius:var(--radius-sm)}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
-
-.bg-grid{
-  position:fixed;inset:0;pointer-events:none;
-  background-image:
-    linear-gradient(rgba(59,130,246,.04) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(59,130,246,.04) 1px,transparent 1px);
-  background-size:48px 48px;
-}
-.bg-glow{
-  position:fixed;
-  width:600px;height:600px;
-  border-radius:50%;
-  background:radial-gradient(circle,color-mix(in oklch,var(--color-primary) 12%,transparent),transparent 70%);
-  top:-200px;left:50%;transform:translateX(-50%);
-  pointer-events:none;
-}
-.theme-toggle{
-  position:fixed;top:var(--space-5);right:var(--space-5);
-  width:36px;height:36px;
-  border-radius:var(--radius-md);
-  background:var(--color-surface);
-  border:1px solid var(--color-border);
-  display:flex;align-items:center;justify-content:center;
-  color:var(--color-text-muted);
-  transition:all var(--transition-interactive);
-  z-index:10;
-}
-.theme-toggle:hover{color:var(--color-text);background:var(--color-surface-dynamic)}
-.login-card{
-  background:var(--color-surface);
-  border:1px solid var(--color-border);
-  border-radius:var(--radius-xl);
-  padding:var(--space-10) var(--space-10);
-  width:100%;max-width:420px;
-  box-shadow:var(--shadow-xl);
-  position:relative;
-  z-index:1;
-  animation:cardIn .5s cubic-bezier(0.16,1,0.3,1);
-}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--radius-sm)}
+.bg-grid{position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(59,130,246,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.04) 1px,transparent 1px);background-size:48px 48px}
+.bg-glow{position:fixed;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,color-mix(in oklch,var(--primary) 12%,transparent),transparent 70%);top:-200px;left:50%;transform:translateX(-50%);pointer-events:none}
+.theme-btn{position:fixed;top:var(--space-5);right:var(--space-5);width:36px;height:36px;border-radius:var(--radius-md);background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all var(--transition);z-index:10}
+.theme-btn:hover{color:var(--text);background:var(--surface-dyn)}
+/* Banner de estado del backend */
+.backend-banner{position:fixed;top:0;left:0;right:0;padding:8px 16px;text-align:center;font-size:11px;font-weight:600;z-index:100;display:none;animation:slideDown .3s ease}
+@keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
+.backend-banner.offline{display:block;background:#7f1d1d;color:#fca5a5;border-bottom:1px solid #ef4444}
+.backend-banner.online{display:block;background:var(--success-hl);color:var(--success);border-bottom:1px solid var(--success)}
+/* Card */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-10);width:100%;max-width:420px;box-shadow:var(--shadow-xl);position:relative;z-index:1;animation:cardIn .5s cubic-bezier(0.16,1,0.3,1)}
 @keyframes cardIn{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 .logo-wrap{display:flex;align-items:center;justify-content:center;margin-bottom:var(--space-8)}
-.logo-icon{
-  width:52px;height:52px;
-  background:color-mix(in oklch,var(--color-primary) 15%,transparent);
-  border:1px solid color-mix(in oklch,var(--color-primary) 30%,transparent);
-  border-radius:var(--radius-lg);
-  display:flex;align-items:center;justify-content:center;
-  margin-right:var(--space-3);
-}
-.logo-text{display:flex;flex-direction:column}
-.logo-name{font-size:var(--text-xl);font-weight:800;letter-spacing:-.03em;line-height:1;color:var(--color-text)}
-.logo-sub{font-size:var(--text-xs);color:var(--color-text-muted);margin-top:2px}
+.logo-icon{width:52px;height:52px;background:color-mix(in oklch,var(--primary) 15%,transparent);border:1px solid color-mix(in oklch,var(--primary) 30%,transparent);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;margin-right:var(--space-3)}
+.logo-name{font-size:var(--text-xl);font-weight:800;letter-spacing:-.03em;line-height:1}
+.logo-sub{font-size:var(--text-xs);color:var(--text-muted);margin-top:2px}
 .card-heading{text-align:center;margin-bottom:var(--space-8)}
 .card-heading h1{font-size:var(--text-lg);font-weight:700;margin-bottom:var(--space-1)}
-.card-heading p{font-size:var(--text-xs);color:var(--color-text-muted)}
-.role-tabs{
-  display:grid;grid-template-columns:1fr 1fr;
-  gap:var(--space-2);margin-bottom:var(--space-6);
-  background:var(--color-surface-offset);
-  border-radius:var(--radius-lg);
-  padding:4px;
-}
-.role-tab{
-  padding:var(--space-2) var(--space-3);
-  border-radius:calc(var(--radius-lg) - 2px);
-  font-size:var(--text-xs);font-weight:600;
-  color:var(--color-text-muted);
-  display:flex;align-items:center;justify-content:center;gap:var(--space-2);
-  transition:all var(--transition-interactive);
-}
-.role-tab:hover{color:var(--color-text)}
-.role-tab.active{background:var(--color-surface);color:var(--color-text);box-shadow:var(--shadow-sm)}
+.card-heading p{font-size:var(--text-xs);color:var(--text-muted)}
+.role-tabs{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-2);margin-bottom:var(--space-6);background:var(--surface-off);border-radius:var(--radius-lg);padding:4px}
+.role-tab{padding:var(--space-2) var(--space-3);border-radius:calc(var(--radius-lg) - 2px);font-size:var(--text-xs);font-weight:600;color:var(--text-muted);display:flex;align-items:center;justify-content:center;gap:var(--space-2);transition:all var(--transition)}
+.role-tab:hover{color:var(--text)}
+.role-tab.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow-sm)}
 .form-group{margin-bottom:var(--space-4)}
-.form-label{
-  display:flex;align-items:center;justify-content:space-between;
-  font-size:var(--text-xs);font-weight:600;
-  color:var(--color-text-muted);
-  margin-bottom:var(--space-2);
-}
+.form-label{display:flex;align-items:center;justify-content:space-between;font-size:var(--text-xs);font-weight:600;color:var(--text-muted);margin-bottom:var(--space-2)}
 .input-wrap{position:relative}
-.input-icon{
-  position:absolute;left:var(--space-3);top:50%;transform:translateY(-50%);
-  color:var(--color-text-faint);pointer-events:none;
-  transition:color var(--transition-interactive);
-}
-.form-input{
-  width:100%;
-  background:var(--color-surface-offset);
-  border:1px solid var(--color-border);
-  border-radius:var(--radius-md);
-  padding:var(--space-3) var(--space-3) var(--space-3) calc(var(--space-3)*2 + 16px);
-  font-size:var(--text-sm);
-  color:var(--color-text);
-  transition:border-color var(--transition-interactive),box-shadow var(--transition-interactive);
-}
-.form-input:focus{
-  outline:none;
-  border-color:var(--color-primary);
-  box-shadow:0 0 0 3px color-mix(in oklch,var(--color-primary) 18%,transparent);
-  background:var(--color-surface);
-}
-.input-wrap:focus-within .input-icon{color:var(--color-primary)}
-.show-pass{
-  position:absolute;right:var(--space-3);top:50%;transform:translateY(-50%);
-  color:var(--color-text-faint);font-size:12px;
-  transition:color var(--transition-interactive);
-}
-.show-pass:hover{color:var(--color-text)}
-.error-msg{
-  display:none;align-items:center;gap:var(--space-2);
-  background:var(--color-error-highlight);
-  border:1px solid color-mix(in oklch,var(--color-error) 30%,transparent);
-  border-radius:var(--radius-md);
-  padding:var(--space-3) var(--space-4);
-  font-size:var(--text-xs);color:var(--color-error);
-  margin-bottom:var(--space-4);
-  animation:shake .4s ease;
-}
-.error-msg.show{display:flex}
+.input-icon{position:absolute;left:var(--space-3);top:50%;transform:translateY(-50%);color:var(--text-faint);pointer-events:none;transition:color var(--transition)}
+.form-input{width:100%;background:var(--surface-off);border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--space-3) var(--space-3) var(--space-3) calc(var(--space-3)*2 + 16px);font-size:var(--text-sm);color:var(--text);transition:border-color var(--transition),box-shadow var(--transition)}
+.form-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in oklch,var(--primary) 18%,transparent);background:var(--surface)}
+.input-wrap:focus-within .input-icon{color:var(--primary)}
+.show-pass{position:absolute;right:var(--space-3);top:50%;transform:translateY(-50%);color:var(--text-faint);font-size:12px;transition:color var(--transition)}
+.show-pass:hover{color:var(--text)}
+.alert{display:none;align-items:center;gap:var(--space-2);border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);font-size:var(--text-xs);margin-bottom:var(--space-4)}
+.alert.show{display:flex}
+.alert-error{background:var(--error-hl);border:1px solid color-mix(in oklch,var(--error) 30%,transparent);color:var(--error);animation:shake .4s ease}
+.alert-success{background:var(--success-hl);border:1px solid color-mix(in oklch,var(--success) 30%,transparent);color:var(--success)}
 @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
-.success-msg{
-  display:none;align-items:center;gap:var(--space-2);
-  background:var(--color-success-highlight);
-  border:1px solid color-mix(in oklch,var(--color-success) 30%,transparent);
-  border-radius:var(--radius-md);
-  padding:var(--space-3) var(--space-4);
-  font-size:var(--text-xs);color:var(--color-success);font-weight:600;
-  margin-bottom:var(--space-4);
-}
-.success-msg.show{display:flex}
-.submit-btn{
-  width:100%;
-  padding:var(--space-4);
-  border-radius:var(--radius-lg);
-  background:var(--color-primary);
-  color:white;font-size:var(--text-sm);font-weight:700;
-  display:flex;align-items:center;justify-content:center;gap:var(--space-2);
-  transition:all var(--transition-interactive);
-  box-shadow:0 4px 16px color-mix(in oklch,var(--color-primary) 40%,transparent);
-  margin-bottom:var(--space-5);
-}
-.submit-btn:hover{background:var(--color-primary-hover);transform:translateY(-1px)}
+.submit-btn{width:100%;padding:var(--space-4);border-radius:var(--radius-lg);background:var(--primary);color:white;font-size:var(--text-sm);font-weight:700;display:flex;align-items:center;justify-content:center;gap:var(--space-2);transition:all var(--transition);box-shadow:0 4px 16px color-mix(in oklch,var(--primary) 40%,transparent);margin-bottom:var(--space-5)}
+.submit-btn:hover{background:var(--primary-h);transform:translateY(-1px)}
 .submit-btn:active{transform:translateY(0)}
 .submit-btn.loading{pointer-events:none;opacity:.8}
-.btn-spinner{
-  width:16px;height:16px;
-  border:2px solid rgba(255,255,255,.3);
-  border-top-color:white;
-  border-radius:50%;
-  animation:spin .7s linear infinite;
-  display:none;
-}
-.submit-btn.loading .btn-spinner{display:block}
-.submit-btn.loading .btn-text{display:none}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:none}
+.submit-btn.loading .spinner{display:block}
+.submit-btn.loading .btn-txt{display:none}
 @keyframes spin{to{transform:rotate(360deg)}}
 .divider{display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-5)}
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--color-divider)}
-.divider span{font-size:11px;color:var(--color-text-faint);white-space:nowrap}
-.account-chips{display:flex;flex-direction:column;gap:var(--space-2)}
-.account-chip{
-  display:flex;align-items:center;gap:var(--space-3);
-  padding:var(--space-3) var(--space-4);
-  background:var(--color-surface-offset);
-  border:1px solid var(--color-border);
-  border-radius:var(--radius-lg);
-  font-size:var(--text-xs);
-  transition:all var(--transition-interactive);cursor:pointer;
-  text-align:left;
-}
-.account-chip:hover{border-color:var(--color-primary);background:var(--color-primary-highlight);color:var(--color-primary)}
-.chip-avatar{
-  width:32px;height:32px;border-radius:var(--radius-full);
-  display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:700;color:white;flex-shrink:0;
-}
-.chip-info{flex:1}
-.chip-name{font-weight:600;color:var(--color-text)}
-.chip-role{color:var(--color-text-faint);font-size:11px}
-.account-chip:hover .chip-name{color:var(--color-primary)}
-.chip-arrow{color:var(--color-text-faint);font-size:14px}
-.card-footer{
-  text-align:center;
-  font-size:11px;color:var(--color-text-faint);
-  margin-top:var(--space-6);padding-top:var(--space-5);
-  border-top:1px solid var(--color-divider);
-}
-.version-badge{
-  display:inline-flex;align-items:center;gap:4px;
-  background:var(--color-surface-offset);
-  border:1px solid var(--color-border);
-  border-radius:var(--radius-full);
-  padding:3px 10px;font-size:10px;
-  font-family:var(--font-mono);color:var(--color-text-faint);
-}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--divider)}
+.divider span{font-size:11px;color:var(--text-faint);white-space:nowrap}
+.chips{display:flex;flex-direction:column;gap:var(--space-2)}
+.chip{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-4);background:var(--surface-off);border:1px solid var(--border);border-radius:var(--radius-lg);font-size:var(--text-xs);transition:all var(--transition);cursor:pointer;text-align:left}
+.chip:hover{border-color:var(--primary);background:var(--primary-hl);color:var(--primary)}
+.avatar{width:32px;height:32px;border-radius:var(--radius-full);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0}
+.chip-name{font-weight:600;color:var(--text)}
+.chip-role{color:var(--text-faint);font-size:11px}
+.chip:hover .chip-name{color:var(--primary)}
+.card-footer{text-align:center;font-size:11px;color:var(--text-faint);margin-top:var(--space-6);padding-top:var(--space-5);border-top:1px solid var(--divider)}
+.badge{display:inline-flex;align-items:center;gap:4px;background:var(--surface-off);border:1px solid var(--border);border-radius:var(--radius-full);padding:3px 10px;font-size:10px;font-family:var(--font-mono);color:var(--text-faint)}
 </style>
 </head>
 <body>
 <div class="bg-grid"></div>
 <div class="bg-glow"></div>
 
-<button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema">
+<!-- Banner: estado de conexión con el backend -->
+<div class="backend-banner" id="backendBanner"></div>
+
+<button class="theme-btn" onclick="toggleTheme()" aria-label="Cambiar tema">
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
 </button>
 
-<div class="login-card">
+<div class="card">
   <div class="logo-wrap">
     <div class="logo-icon">
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
@@ -301,7 +122,7 @@ input{font:inherit;color:inherit}
         <circle cx="22" cy="8" r="3" fill="#22c55e"/>
       </svg>
     </div>
-    <div class="logo-text">
+    <div>
       <div class="logo-name">NexCaja</div>
       <div class="logo-sub">Sistema POS Multimodal</div>
     </div>
@@ -314,22 +135,20 @@ input{font:inherit;color:inherit}
 
   <div class="role-tabs">
     <button class="role-tab active" onclick="setRole(this,'cajero')">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-      Cajero
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Cajero
     </button>
     <button class="role-tab" onclick="setRole(this,'admin')">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      Administrador
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Administrador
     </button>
   </div>
 
-  <div class="error-msg" id="errorMsg">
+  <div class="alert alert-error" id="alertError">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
     <span id="errorText">Usuario o contraseña incorrectos</span>
   </div>
-  <div class="success-msg" id="successMsg">
+  <div class="alert alert-success" id="alertSuccess">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-    <span id="successText">¡Bienvenido! Redirigiendo a la caja...</span>
+    <span id="successText">¡Bienvenido! Redirigiendo...</span>
   </div>
 
   <form id="loginForm" onsubmit="handleLogin(event)">
@@ -343,109 +162,142 @@ input{font:inherit;color:inherit}
     <div class="form-group">
       <label class="form-label" for="password">
         Contraseña
-        <a href="#" style="color:var(--color-primary);text-decoration:none;font-weight:400" onclick="showForgot(event)">¿Olvidaste?</a>
+        <a href="#" style="color:var(--primary);text-decoration:none;font-weight:400" onclick="return false">¿Olvidaste?</a>
       </label>
       <div class="input-wrap">
         <input type="password" class="form-input" id="password" placeholder="••••••••" autocomplete="current-password" required>
         <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <button type="button" class="show-pass" onclick="togglePass()" id="showPassBtn">👁</button>
+        <button type="button" class="show-pass" onclick="togglePass()">👁</button>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-6)">
-      <input type="checkbox" id="rememberMe" style="width:14px;height:14px;accent-color:var(--color-primary)">
-      <label for="rememberMe" style="font-size:var(--text-xs);color:var(--color-text-muted);cursor:pointer">Recordar este dispositivo</label>
+      <input type="checkbox" id="remember" style="width:14px;height:14px;accent-color:var(--primary)">
+      <label for="remember" style="font-size:var(--text-xs);color:var(--text-muted);cursor:pointer">Recordar este dispositivo</label>
     </div>
     <button type="submit" class="submit-btn" id="submitBtn">
-      <div class="btn-spinner" id="btnSpinner"></div>
-      <span class="btn-text">Ingresar al sistema</span>
-      <svg class="btn-text" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      <div class="spinner" id="spinner"></div>
+      <span class="btn-txt">Ingresar al sistema</span>
+      <svg class="btn-txt" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
     </button>
   </form>
 
   <div class="divider"><span>Acceso rápido (demo)</span></div>
-
-  <div class="account-chips" id="accountChips"></div>
+  <div class="chips" id="chips"></div>
 
   <div class="card-footer">
-    <div class="version-badge">NexCaja v1.0.0 · UCE 2026</div>
+    <div class="badge">NexCaja v1.0.0 · UCE 2026</div>
   </div>
 </div>
 
+<script src="js/api.js"></script>
 <script>
-const ACCOUNTS = {
+const DEMO = {
   cajero: [
-    {name:'Juan Rodríguez', user:'juan.rodriguez', pass:'caja123', role:'Cajero — Turno matutino', color:'#3b82f6', initials:'JR'},
-    {name:'María López', user:'maria.lopez', pass:'caja123', role:'Cajero — Turno vespertino', color:'#a855f7', initials:'ML'},
+    {name:'Juan Rodríguez', user:'juan.rodriguez', pass:'caja123', role:'Cajero — Turno matutino', color:'#3b82f6', ini:'JR'},
+    {name:'María López',    user:'maria.lopez',    pass:'caja123', role:'Cajero — Turno vespertino', color:'#a855f7', ini:'ML'},
   ],
   admin: [
-    {name:'Carlos Mendoza', user:'admin', pass:'admin123', role:'Administrador general', color:'#22c55e', initials:'CM'},
-    {name:'Ana Torres', user:'ana.torres', pass:'admin123', role:'Supervisor de turno', color:'#f59e0b', initials:'AT'},
+    {name:'Carlos Mendoza', user:'admin',      pass:'admin123', role:'Administrador general',   color:'#22c55e', ini:'CM'},
+    {name:'Ana Torres',     user:'ana.torres', pass:'admin123', role:'Supervisor de turno',     color:'#f59e0b', ini:'AT'},
   ]
 };
-let currentRole = 'cajero';
-function renderChips(){
-  const list = ACCOUNTS[currentRole];
-  document.getElementById('accountChips').innerHTML = list.map(a=>`
-    <button class="account-chip" onclick="quickLogin('${a.user}','${a.pass}')">
-      <div class="chip-avatar" style="background:${a.color}">${a.initials}</div>
-      <div class="chip-info">
-        <div class="chip-name">${a.name}</div>
-        <div class="chip-role">${a.role} · ${a.user}</div>
-      </div>
-      <span class="chip-arrow">→</span>
+let rol = 'cajero';
+
+// --- Verificar conexión con el backend al cargar ---
+window.addEventListener('DOMContentLoaded', async () => {
+  renderChips();
+  const banner = document.getElementById('backendBanner');
+  const ok = await NexCajaAPI.verificarConexion();
+  if (ok) {
+    banner.textContent = '✅ Backend conectado — Modo real: los datos se guardan en la base de datos';
+    banner.className = 'backend-banner online';
+    setTimeout(() => banner.style.display = 'none', 3000);
+  } else {
+    banner.textContent = '⚠️ Backend no disponible — Modo demo: el login funciona solo con las cuentas de acceso rápido';
+    banner.className = 'backend-banner offline';
+  }
+});
+
+function renderChips() {
+  document.getElementById('chips').innerHTML = DEMO[rol].map(a => `
+    <button class="chip" onclick="quickLogin('${a.user}','${a.pass}')">
+      <div class="avatar" style="background:${a.color}">${a.ini}</div>
+      <div><div class="chip-name">${a.name}</div><div class="chip-role">${a.role} · ${a.user}</div></div>
+      <span style="margin-left:auto;color:var(--text-faint)">&#8594;</span>
     </button>`).join('');
 }
-renderChips();
-function setRole(btn, role){
-  currentRole = role;
-  document.querySelectorAll('.role-tab').forEach(b=>b.classList.remove('active'));
+
+function setRole(btn, r) {
+  rol = r;
+  document.querySelectorAll('.role-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderChips();
-  clearMessages();
+  clearAlerts();
 }
-function quickLogin(user, pass){
+
+function quickLogin(user, pass) {
   document.getElementById('usuario').value = user;
   document.getElementById('password').value = pass;
-  setTimeout(()=>handleLogin({preventDefault:()=>{}}),200);
+  setTimeout(() => handleLogin({ preventDefault: () => {} }), 150);
 }
-function handleLogin(e){
+
+async function handleLogin(e) {
   e.preventDefault();
-  clearMessages();
+  clearAlerts();
   const user = document.getElementById('usuario').value.trim();
   const pass = document.getElementById('password').value;
-  const btn = document.getElementById('submitBtn');
+  const btn  = document.getElementById('submitBtn');
   btn.classList.add('loading');
-  setTimeout(()=>{
-    btn.classList.remove('loading');
-    const allAccounts = [...ACCOUNTS.cajero, ...ACCOUNTS.admin];
-    const match = allAccounts.find(a=>a.user===user && a.pass===pass);
-    if(match){
-      document.getElementById('successMsg').querySelector('span').textContent=
-        `¡Bienvenido, ${match.name.split(' ')[0]}! Redirigiendo...`;
-      document.getElementById('successMsg').classList.add('show');
-      setTimeout(()=>{ window.location.href='caja.html'; },1600);
+
+  try {
+    // --- Intentar login REAL con el backend ---
+    const usuario = await NexCajaAPI.login(user, pass);
+    document.getElementById('successText').textContent =
+      `¡Bienvenido, ${usuario.nombre}! Redirigiendo...`;
+    document.getElementById('alertSuccess').classList.add('show');
+    // Redirige según el rol
+    setTimeout(() => {
+      window.location.href = usuario.rol === 'ADMIN' ? 'dashboard.html' : 'caja.html';
+    }, 1400);
+  } catch (err) {
+    // --- Si el backend no está, intentar login DEMO ---
+    const todos = [...DEMO.cajero, ...DEMO.admin];
+    const match = todos.find(a => a.user === user && a.pass === pass);
+    if (match) {
+      // Guardar sesión demo
+      sessionStorage.setItem('nexcaja_usuario', JSON.stringify({
+        id: 1, nombre: match.name.split(' ')[0],
+        apellido: match.name.split(' ')[1] || '',
+        nombreUsuario: match.user,
+        rol: match.role.includes('Admin') || match.role.includes('admin') ? 'ADMIN' : 'CAJERO'
+      }));
+      document.getElementById('successText').textContent =
+        `¡Bienvenido, ${match.name.split(' ')[0]}! (modo demo)`;
+      document.getElementById('alertSuccess').classList.add('show');
+      setTimeout(() => {
+        const esAdmin = match.role.toLowerCase().includes('admin') || match.role.toLowerCase().includes('supervisor');
+        window.location.href = esAdmin ? 'dashboard.html' : 'caja.html';
+      }, 1400);
     } else {
-      document.getElementById('errorMsg').classList.add('show');
+      document.getElementById('errorText').textContent = err.message;
+      document.getElementById('alertError').classList.add('show');
     }
-  }, 1200);
+  } finally {
+    btn.classList.remove('loading');
+  }
 }
-function clearMessages(){
-  document.getElementById('errorMsg').classList.remove('show');
-  document.getElementById('successMsg').classList.remove('show');
+
+function clearAlerts() {
+  document.getElementById('alertError').classList.remove('show');
+  document.getElementById('alertSuccess').classList.remove('show');
 }
-function togglePass(){
-  const inp=document.getElementById('password');
-  inp.type = inp.type==='password'?'text':'password';
-  document.getElementById('showPassBtn').textContent = inp.type==='password'?'👁':'🙈';
+function togglePass() {
+  const i = document.getElementById('password');
+  i.type = i.type === 'password' ? 'text' : 'password';
 }
-function showForgot(e){
-  e.preventDefault();
-  alert('Contacta al administrador del sistema para restablecer tu contraseña.');
-}
-function toggleTheme(){
-  const html=document.documentElement;
-  const d=html.getAttribute('data-theme')==='dark'?'light':'dark';
-  html.setAttribute('data-theme',d);
+function toggleTheme() {
+  const h = document.documentElement;
+  h.setAttribute('data-theme', h.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
 }
 </script>
 </body>
