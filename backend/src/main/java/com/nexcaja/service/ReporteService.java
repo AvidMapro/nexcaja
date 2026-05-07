@@ -1,209 +1,203 @@
 package com.nexcaja.service;
 
-import com.nexcaja.model.*;
-import com.nexcaja.repository.*;
+import com.nexcaja.model.AlertaSmartRefill;
+import com.nexcaja.repository.AlertaSmartRefillRepository;
+import com.nexcaja.repository.DetalleTransaccionRepository;
+import com.nexcaja.repository.TransaccionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 
 /**
- * Servicio encargado del modulo Smart Refill.
+ * Servicio de reportes y Smart Refill.
  *
- * Su responsabilidad es analizar las ventas del dia y determinar si
- * el consumo de productos perecibles o bebidas fue inusualmente alto.
- * Si lo fue, genera y guarda alertas en la base de datos para que
- * el administrador las vea en el dashboard al cerrar el turno.
+ * Este servicio hace dos cosas:
+ * 1. Genera el reporte de cierre de turno para el dashboard
+ * 2. Analiza las ventas para generar alertas Smart Refill automáticamente
  *
- * Logica de umbrales (valores configurables):
- *   - PERECIBLE: alerta si se vendieron mas de 50 unidades en el turno
- *   - BEBIDA:    alerta si se vendieron mas de 60 unidades en el turno
- *   Si se supera el 50% del umbral extra, la alerta es CRITICA en lugar de PREVENTIVA.
+ * ¿Qué es Smart Refill?
+ * Es un sistema predictivo que analiza el ritmo de ventas por categoría
+ * y genera una alerta cuando detecta que una categoría se vende
+ * mucho más rápido de lo normal, para que el personal pueda
+ * reabastecerse antes de quedarse sin stock.
  */
 @Service
 public class ReporteService {
 
-    // Cuantas unidades de perecibles por turno se consideran "normal"
-    private static final int UMBRAL_PERECIBLE = 50;
+    @Autowired private TransaccionRepository transaccionRepository;
+    @Autowired private DetalleTransaccionRepository detalleRepository;
+    @Autowired private AlertaSmartRefillRepository alertaRepository;
 
-    // Cuantas unidades de bebidas por turno se consideran "normal"
-    private static final int UMBRAL_BEBIDA = 60;
+    // Umbral de unidades para considerar que hay un pico de ventas.
+    // Si en la última hora se vendieron más de 20 unidades de una categoría,
+    // el sistema genera una alerta automáticamente.
+    private static final int UMBRAL_PICO = 20;
 
-    @Autowired
-    private TransaccionRepository transaccionRepository;
-
-    @Autowired
-    private AlertaSmartRefillRepository alertaRepository;
+    // ---------------------------------------------------------------
+    // REPORTE DE CIERRE
+    // ---------------------------------------------------------------
 
     /**
-     * Genera el reporte completo de cierre de turno para una fecha dada.
+     * Genera el reporte completo de cierre para una fecha.
      *
-     * Pasos que ejecuta:
-     * 1. Obtiene todas las ventas del dia
-     * 2. Calcula el total de dinero recaudado
-     * 3. Cuenta unidades vendidas por producto y por categoria
-     * 4. Detecta si se superaron los umbrales de perecibles y bebidas
-     * 5. Crea y guarda en base de datos las alertas necesarias
-     * 6. Devuelve un mapa con toda la informacion para mostrar en pantalla
+     * Además de calcular los KPIs, este método activa el motor
+     * Smart Refill, que analiza las ventas recientes y genera
+     * alertas si detecta patrones fuera de lo normal.
      *
-     * @param fecha  El dia del que se quiere el reporte (normalmente la fecha de hoy)
-     * @return Mapa con el resumen del dia, incluyendo alertas si las hay
+     * @param fecha  día del reporte
+     * @return mapa con todos los datos del reporte
      */
-    @Transactional
     public Map<String, Object> generarReporteCierre(LocalDate fecha) {
+        LocalDateTime inicio = fecha.atStartOfDay();
+        LocalDateTime fin    = fecha.atTime(LocalTime.MAX);
 
-        LocalDateTime inicioDia = fecha.atStartOfDay();
-        LocalDateTime finDia = fecha.atTime(23, 59, 59);
+        // KPIs principales del dashboard
+        Double totalVentas        = transaccionRepository.calcularTotalVentas(inicio, fin);
+        Long   totalTransacciones = transaccionRepository.contarTransacciones(inicio, fin);
+        List<Object[]> topProductos = detalleRepository.topProductosVendidos(inicio, fin);
 
-        // Paso 1: traer todas las ventas completadas del dia
-        List<Transaccion> ventas = transaccionRepository.findByFechaHoraBetween(inicioDia, finDia);
+        double ticketPromedio = (totalTransacciones > 0)
+                ? totalVentas / totalTransacciones : 0.0;
 
-        // Paso 2: calcular el total de dinero vendido en el dia
-        Double totalDinero = transaccionRepository.calcularTotalVentas(inicioDia, finDia);
-        if (totalDinero == null) totalDinero = 0.0;
+        // Top productos formateado para el frontend
+        List<Map<String, Object>> ranking = topProductos.stream()
+                .map(r -> Map.of("nombre", r[0], "unidades", r[1], "ingresos", r[2]))
+                .toList();
 
-        // Paso 3: contar cuantas unidades se vendieron de cada producto y categoria
-        Map<String, Integer> ventasPorProducto = new LinkedHashMap<>();
-        Map<String, Integer> ventasPorCategoria = new LinkedHashMap<>();
+        // Ventas por categoría (para el gráfico de dona del dashboard)
+        Map<String, Object> ventasPorCategoria = calcularVentasPorCategoria(inicio, fin);
 
-        for (Transaccion venta : ventas) {
-            if (venta.getDetalles() == null) continue;
-            for (DetalleTransaccion detalle : venta.getDetalles()) {
-                String nombreProducto = detalle.getProducto().getNombre();
-                String nombreCategoria = detalle.getProducto().getCategoria().name();
-                int cantidad = detalle.getCantidad();
+        // Ejecutar el motor Smart Refill y obtener alertas
+        List<AlertaSmartRefill> alertasGeneradas = ejecutarSmartRefill();
+        List<AlertaSmartRefill> alertasPendientes = alertaRepository.findByResueltaFalse();
 
-                // Acumulamos por nombre de producto
-                ventasPorProducto.merge(nombreProducto, cantidad, Integer::sum);
-
-                // Acumulamos por categoria
-                ventasPorCategoria.merge(nombreCategoria, cantidad, Integer::sum);
-            }
-        }
-
-        // Paso 4: revisar umbrales y construir lista de alertas
-        List<AlertaSmartRefill> alertasGeneradas = new ArrayList<>();
-
-        int totalPerecibles = ventasPorCategoria.getOrDefault("PERECIBLE", 0);
-        int totalBebidas    = ventasPorCategoria.getOrDefault("BEBIDA", 0);
-
-        // Evaluamos si los perecibles superaron su umbral
-        if (totalPerecibles > UMBRAL_PERECIBLE) {
-            AlertaSmartRefill alerta = construirAlerta(
-                    Producto.Categoria.PERECIBLE,
-                    totalPerecibles,
-                    UMBRAL_PERECIBLE
-            );
-            alertasGeneradas.add(alerta);
-        }
-
-        // Evaluamos si las bebidas superaron su umbral
-        if (totalBebidas > UMBRAL_BEBIDA) {
-            AlertaSmartRefill alerta = construirAlerta(
-                    Producto.Categoria.BEBIDA,
-                    totalBebidas,
-                    UMBRAL_BEBIDA
-            );
-            alertasGeneradas.add(alerta);
-        }
-
-        // Paso 5: guardar todas las alertas generadas en la base de datos
-        if (!alertasGeneradas.isEmpty()) {
-            alertaRepository.saveAll(alertasGeneradas);
-        }
-
-        // Construimos la lista de mensajes para mostrar al administrador
-        List<String> mensajesAlerta = new ArrayList<>();
-        for (AlertaSmartRefill alerta : alertasGeneradas) {
-            mensajesAlerta.add("[" + alerta.getNivelAlerta() + "] " + alerta.getMensaje());
-        }
-
-        // Paso 6: devolver el reporte completo como mapa
+        // Construir el reporte final
         Map<String, Object> reporte = new LinkedHashMap<>();
-        reporte.put("fecha",               fecha.toString());
-        reporte.put("totalTransacciones",   ventas.size());
-        reporte.put("totalDineroVendido",   totalDinero);
-        reporte.put("ventasPorProducto",    ventasPorProducto);
-        reporte.put("ventasPorCategoria",   ventasPorCategoria);
-        reporte.put("hayAlertas",           !alertasGeneradas.isEmpty());
-        reporte.put("alertas",              mensajesAlerta);
-        reporte.put("cantidadAlertasPendientes",
-                alertaRepository.countByEstadoAlerta(AlertaSmartRefill.EstadoAlerta.PENDIENTE));
-
+        reporte.put("fecha",                  fecha.toString());
+        reporte.put("totalVentas",            Math.round(totalVentas * 100.0) / 100.0);
+        reporte.put("totalTransacciones",     totalTransacciones);
+        reporte.put("ticketPromedio",         Math.round(ticketPromedio * 100.0) / 100.0);
+        reporte.put("topProductos",           ranking);
+        reporte.put("ventasPorCategoria",     ventasPorCategoria);
+        reporte.put("hayAlertas",             !alertasPendientes.isEmpty());
+        reporte.put("cantidadAlertasPendientes", alertasPendientes.size());
+        reporte.put("alertasGeneradasAhora",  alertasGeneradas.size());
         return reporte;
     }
 
+    // ---------------------------------------------------------------
+    // MOTOR SMART REFILL
+    // ---------------------------------------------------------------
+
     /**
-     * Devuelve todas las alertas que el administrador todavia no ha revisado.
-     * Se usa para mostrar el panel de notificaciones en el dashboard.
+     * Analiza las ventas de la última hora y genera alertas si hay picos.
+     *
+     * Lógica del algoritmo:
+     * 1. Consulta cuántas unidades se vendieron por categoría en la última hora
+     * 2. Si alguna categoría supera el umbral (20 unidades), es un pico
+     * 3. Verifica que no exista ya una alerta sin resolver para esa categoría
+     *    (para no generar la misma alerta cada vez que se llama al reporte)
+     * 4. Si es un pico nuevo, guarda la alerta en la base de datos
+     *
+     * @return lista de alertas nuevas que se generaron en esta ejecución
+     */
+    private List<AlertaSmartRefill> ejecutarSmartRefill() {
+        LocalDateTime ahora         = LocalDateTime.now();
+        LocalDateTime desdeHace1hora = ahora.minusHours(1);
+
+        // Consultar picos por categoría en la última hora
+        List<Object[]> picos = transaccionRepository
+                .detectarPicosPorCategoria(desdeHace1hora, ahora);
+
+        List<AlertaSmartRefill> alertasNuevas = new ArrayList<>();
+
+        for (Object[] pico : picos) {
+            String categoria   = pico[0].toString();
+            long   unidades    = ((Number) pico[1]).longValue();
+
+            // Solo generar alerta si supera el umbral
+            if (unidades >= UMBRAL_PICO) {
+                // Verificar que no exista ya una alerta pendiente para esta categoría
+                List<AlertaSmartRefill> existentes =
+                        alertaRepository.findByCategoriaAndResueltaFalse(categoria);
+
+                if (existentes.isEmpty()) {
+                    // ¡Pico detectado! Crear y guardar la alerta
+                    AlertaSmartRefill alerta = new AlertaSmartRefill();
+                    alerta.setFechaHora(ahora);
+                    alerta.setCategoria(categoria);
+                    alerta.setTipoAlerta("PICO_VENTAS");
+                    alerta.setDescripcion(
+                        String.format(
+                            "[SMART REFILL] Pico detectado en %s: %d unidades vendidas " +
+                            "en la última hora (umbral: %d). Considere reabastecer el exhibidor.",
+                            categoria, unidades, UMBRAL_PICO
+                        )
+                    );
+                    alerta.setResuelta(false);
+                    alertasNuevas.add(alertaRepository.save(alerta));
+                }
+            }
+        }
+        return alertasNuevas;
+    }
+
+    // ---------------------------------------------------------------
+    // GESTIÓN DE ALERTAS
+    // ---------------------------------------------------------------
+
+    /**
+     * Devuelve todas las alertas que aún no han sido revisadas.
+     * El dashboard las muestra con un badge de urgencia.
+     *
+     * @return lista de alertas pendientes
      */
     public List<AlertaSmartRefill> obtenerAlertasPendientes() {
-        return alertaRepository.findByEstadoAlerta(AlertaSmartRefill.EstadoAlerta.PENDIENTE);
+        return alertaRepository.findByResueltaFalse();
     }
 
     /**
-     * Marca una alerta como revisada y guarda la nota del administrador.
-     * El administrador llama a esto desde el dashboard cuando confirma
-     * que ya tomo las acciones necesarias (por ejemplo, reviso el freezer).
+     * Marca una alerta como resuelta cuando el administrador la atiende.
      *
-     * @param alertaId ID de la alerta que se va a marcar como revisada
-     * @param nota     Comentario opcional del administrador
-     * @return La alerta actualizada con estado REVISADA
+     * @param id    ID de la alerta
+     * @param nota  comentario del administrador sobre cómo la resolvió
+     * @return la alerta actualizada
+     * @throws IllegalArgumentException si la alerta no existe
      */
-    @Transactional
-    public AlertaSmartRefill marcarAlertaRevisada(Long alertaId, String nota) {
-        AlertaSmartRefill alerta = alertaRepository.findById(alertaId)
+    public AlertaSmartRefill marcarAlertaRevisada(Long id, String nota) {
+        AlertaSmartRefill alerta = alertaRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "No se encontro la alerta con ID: " + alertaId));
-
-        alerta.setEstadoAlerta(AlertaSmartRefill.EstadoAlerta.REVISADA);
-        alerta.setNotaAdministrador(nota != null ? nota : "");
-
+                        "No existe una alerta con ID: " + id));
+        alerta.setResuelta(true);
         return alertaRepository.save(alerta);
     }
 
     // ---------------------------------------------------------------
-    // Metodos privados de apoyo
+    // MÉTODO AUXILIAR
     // ---------------------------------------------------------------
 
     /**
-     * Construye el objeto AlertaSmartRefill con todos sus campos calculados.
-     * Determina si el nivel es PREVENTIVA o CRITICA segun cuanto se supero el umbral:
-     *   - Si el exceso es menor o igual al 50% del umbral -> PREVENTIVA
-     *   - Si el exceso supera el 50% del umbral            -> CRITICA
+     * Agrupa las ventas por categoría de producto para el gráfico de dona.
+     * Recorre todas las transacciones del día y suma unidades por categoría.
      *
-     * @param categoria      Tipo de producto que genero la alerta
-     * @param volumenVentas  Cuantas unidades se vendieron realmente
-     * @param umbral         Cuantas unidades se consideran normal
-     * @return El objeto de alerta listo para guardar en la base de datos
+     * @param inicio  inicio del día
+     * @param fin     fin del día
+     * @return mapa { "PERECIBLE": 120, "BEBIDA": 85, "NO_PERECIBLE": 30 }
      */
-    private AlertaSmartRefill construirAlerta(Producto.Categoria categoria,
-                                               int volumenVentas, int umbral) {
-        int exceso = volumenVentas - umbral;
-        double porcentajeExceso = ((double) exceso / umbral) * 100.0;
+    private Map<String, Object> calcularVentasPorCategoria(
+            LocalDateTime inicio, LocalDateTime fin) {
 
-        // Si el exceso supera el 50% del umbral, la alerta es critica
-        AlertaSmartRefill.NivelAlerta nivel = porcentajeExceso > 50.0
-                ? AlertaSmartRefill.NivelAlerta.CRITICA
-                : AlertaSmartRefill.NivelAlerta.PREVENTIVA;
+        List<Object[]> picos = transaccionRepository
+                .detectarPicosPorCategoria(inicio, fin);
 
-        String mensaje = String.format(
-                "Alto consumo en %s: %d unidades vendidas (umbral normal: %d). "
-                + "Verifique temperatura de equipos de refrigeracion antes del siguiente turno.",
-                categoria.name(), volumenVentas, umbral
-        );
-
-        AlertaSmartRefill alerta = new AlertaSmartRefill();
-        alerta.setFechaHora(LocalDateTime.now());
-        alerta.setCategoria(categoria);
-        alerta.setVolumenVentas(volumenVentas);
-        alerta.setUmbralNormal(umbral);
-        alerta.setNivelAlerta(nivel);
-        alerta.setEstadoAlerta(AlertaSmartRefill.EstadoAlerta.PENDIENTE);
-        alerta.setMensaje(mensaje);
-
-        return alerta;
+        Map<String, Object> resultado = new LinkedHashMap<>();
+        for (Object[] fila : picos) {
+            resultado.put(fila[0].toString(), ((Number) fila[1]).longValue());
+        }
+        return resultado;
     }
 }
