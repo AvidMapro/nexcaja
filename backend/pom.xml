@@ -6,7 +6,6 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Informacion general del proyecto -->
     <groupId>com.nexcaja</groupId>
     <artifactId>nexcaja-backend</artifactId>
     <version>1.0.0</version>
@@ -14,7 +13,6 @@
     <name>NexCaja Backend</name>
     <description>Servidor del sistema POS Multimodal NexCaja - Universidad Central del Ecuador</description>
 
-    <!-- Usamos Spring Boot como base del proyecto -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -23,52 +21,64 @@
     </parent>
 
     <properties>
-        <!-- El proyecto usa Java 17 -->
         <java.version>17</java.version>
     </properties>
 
     <dependencies>
 
-        <!-- Spring Web: permite crear endpoints REST que el frontend puede llamar -->
+        <!-- Spring Web: endpoints REST para el frontend -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Spring Data JPA: simplifica el acceso a la base de datos -->
+        <!-- Spring Data JPA: acceso a base de datos -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
-        <!-- Base de datos H2: se ejecuta en memoria durante el desarrollo,
-             no necesita instalar nada extra. En produccion se cambia a PostgreSQL -->
+        <!--
+            PostgreSQL: base de datos principal (Supabase en produccion).
+            Spring Boot elige automaticamente este driver cuando
+            spring.datasource.url empieza con jdbc:postgresql://
+        -->
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Spring Security: maneja la autenticacion de usuarios (login) -->
+        <!--
+            H2: solo para ejecutar los tests automatizados sin
+            necesitar conexion a Supabase. NO se usa en desarrollo
+            ni en produccion.
+        -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Spring Security: autenticacion de usuarios -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!-- Lombok: reduce el codigo repetitivo como getters, setters y constructores -->
+        <!-- Lombok: reduce codigo repetitivo (getters, setters, builders) -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
 
-        <!-- Dependencias para pruebas automatizadas -->
+        <!-- Tests -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
@@ -79,7 +89,6 @@
 
     <build>
         <plugins>
-            <!-- Plugin para compilar y ejecutar Spring Boot con 'mvn spring-boot:run' -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
