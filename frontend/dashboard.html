@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexCaja — Dashboard de Cierre</title>
+
+    <!-- Fuente: Satoshi (Fontshare) para un look limpio y profesional -->
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+
+    <!-- Iconos: Lucide (ligeros, modernos, sin dependencias pesadas) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* ============================================================
+           TOKENS DE DISEÑO
+           Variables CSS que definen todos los colores, espaciados
+           y tipografias del sistema. Cambiar un valor aqui lo
+           actualiza en toda la pantalla.
+        ============================================================ */
+        :root {
+            --font-body: 'Satoshi', 'Helvetica Neue', sans-serif;
+
+            /* Superficies */
+            --color-bg:              #f7f6f2;
+            --color-surface:         #f9f8f5;
+            --color-surface-2:       #ffffff;
+            --color-border:          #d4d1ca;
+            --color-divider:         #e8e6e1;
+
+            /* Texto */
+            --color-text:            #28251d;
+            --color-text-muted:      #7a7974;
+            --color-text-faint:      #bab9b4;
+
+            /* Acento principal: verde teal de NexCaja */
+            --color-primary:         #01696f;
+            --color-primary-hover:   #0c4e54;
+            --color-primary-light:   #cedcd8;
+
+            /* Alerta PREVENTIVA: amarillo ambar */
+            --color-warn:            #d19900;
+            --color-warn-bg:         #fdf8e7;
+            --color-warn-border:     #f0d060;
+
+            /* Alerta CRITICA: rojo */
+            --color-error:           #a12c2c;
+            --color-error-bg:        #fdf0f0;
+            --color-error-border:    #e8a0a0;
+
+            /* Exito / revisada */
+            --color-success:         #437a22;
+            --color-success-bg:      #f0f7ea;
+            --color-success-border:  #a8d080;
+
+            /* Espaciados (escala de 4px) */
+            --space-1: 0.25rem;  /*  4px */
+            --space-2: 0.5rem;   /*  8px */
+            --space-3: 0.75rem;  /* 12px */
+            --space-4: 1rem;     /* 16px */
+            --space-5: 1.25rem;  /* 20px */
+            --space-6: 1.5rem;   /* 24px */
+            --space-8: 2rem;     /* 32px */
+            --space-10: 2.5rem;  /* 40px */
+            --space-12: 3rem;    /* 48px */
+
+            /* Radios */
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+
+            /* Sombras */
+            --shadow-sm: 0 1px 3px rgba(40,37,29,0.07);
+            --shadow-md: 0 4px 12px rgba(40,37,29,0.09);
+
+            /* Transicion estandar */
+            --transition: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Modo oscuro */
+        [data-theme="dark"] {
+            --color-bg:             #171614;
+            --color-surface:        #1c1b19;
+            --color-surface-2:      #242320;
+            --color-border:         #393836;
+            --color-divider:        #2a2927;
+            --color-text:           #cdccca;
+            --color-text-muted:     #797876;
+            --color-text-faint:     #5a5957;
+            --color-primary:        #4f98a3;
+            --color-primary-hover:  #227f8b;
+            --color-primary-light:  #1f3535;
+            --color-warn:           #e8af34;
+            --color-warn-bg:        #2a2310;
+            --color-warn-border:    #7a5c10;
+            --color-error:          #dd6969;
+            --color-error-bg:       #2a1010;
+            --color-error-border:   #7a2020;
+            --color-success:        #6daa45;
+            --color-success-bg:     #0f1e09;
+            --color-success-border: #2e5c10;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.25);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.35);
+        }
+
+        /* ============================================================
+           RESET BASE
+        ============================================================ */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--color-text);
+            background: var(--color-bg);
+            min-height: 100dvh;
+            transition: background var(--transition), color var(--transition);
+        }
+        button { cursor: pointer; border: none; background: none; font: inherit; color: inherit; }
+        a, button { transition: color var(--transition), background var(--transition),
+                                border-color var(--transition), box-shadow var(--transition); }
+        :focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px;
+                         border-radius: var(--radius-sm); }
+
+        /* ============================================================
+           BARRA SUPERIOR
+        ============================================================ */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-4) var(--space-8);
+            background: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+            box-shadow: var(--shadow-sm);
+        }
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            font-weight: 700;
+            font-size: 1.125rem;
+            color: var(--color-primary);
+            text-decoration: none;
+        }
+        .topbar-brand svg { width: 28px; height: 28px; }
+        .topbar-right { display: flex; align-items: center; gap: var(--space-3); }
+
+        /* Badge de alertas pendientes en la barra */
+        .badge-alertas {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+            padding: var(--space-1) var(--space-3);
+            background: var(--color-error-bg);
+            color: var(--color-error);
+            border: 1px solid var(--color-error-border);
+            border-radius: var(--radius-full, 9999px);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .badge-alertas.oculto { display: none; }
+
+        /* Boton toggle modo oscuro */
+        .btn-toggle {
+            width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: var(--radius-md);
+            color: var(--color-text-muted);
+        }
+        .btn-toggle:hover { background: var(--color-divider); color: var(--color-text); }
+
+        /* ============================================================
+           CONTENIDO PRINCIPAL
+        ============================================================ */
+        .main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: var(--space-10) var(--space-6);
+        }
+
+        /* Cabecera de seccion */
+        .page-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--space-4);
+            margin-bottom: var(--space-8);
+        }
+        .page-header h1 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; }
+        .page-header p  { color: var(--color-text-muted); font-size: 0.9375rem; margin-top: var(--space-1); }
+
+        /* ============================================================
+           SELECTOR DE FECHA Y BOTON GENERAR
+        ============================================================ */
+        .fecha-form {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            flex-wrap: wrap;
+        }
+        .fecha-form label { font-size: 0.875rem; font-weight: 500; color: var(--color-text-muted); }
+        .fecha-form input[type="date"] {
+            padding: var(--space-2) var(--space-4);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            background: var(--color-surface-2);
+            color: var(--color-text);
+            font-size: 0.9375rem;
+            font-family: var(--font-body);
+        }
+        .fecha-form input[type="date"]:focus {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+        .btn-primary {
+            display: inline-flex; align-items: center; gap: var(--space-2);
+            padding: var(--space-2) var(--space-5);
+            background: var(--color-primary);
+            color: #ffffff;
+            border-radius: var(--radius-md);
+            font-size: 0.9375rem;
+            font-weight: 600;
+        }
+        .btn-primary:hover  { background: var(--color-primary-hover); }
+        .btn-primary:active { opacity: 0.9; transform: scale(0.98); }
+        .btn-primary:disabled { opacity: 0.5; pointer-events: none; }
+
+        /* ============================================================
+           ESTADO DE CARGA
+        ============================================================ */
+        .estado-carga {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-8);
+            color: var(--color-text-muted);
+            font-size: 0.9375rem;
+        }
+        .spinner {
+            width: 20px; height: 20px;
+            border: 2px solid var(--color-border);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: girar 0.8s linear infinite;
+        }
+        @keyframes girar { to { transform: rotate(360deg); } }
+        .oculto { display: none !important; }
+
+        /* ============================================================
+           TARJETAS KPI (resumen numerico del dia)
+        ============================================================ */
+        .kpis {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-8);
+        }
+        .kpi {
+            background: var(--color-surface-2);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-5) var(--space-6);
+            box-shadow: var(--shadow-sm);
+        }
+        .kpi-label {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: var(--space-2);
+        }
+        .kpi-valor {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-weight: 700;
+            color: var(--color-text);
+            line-height: 1.1;
+        }
+        .kpi-valor.verde { color: var(--color-primary); }
+
+        /* ============================================================
+           SECCION DE VENTAS POR CATEGORIA
+        ============================================================ */
+        .seccion { margin-bottom: var(--space-8); }
+        .seccion-titulo {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: var(--space-4);
+            padding-bottom: var(--space-3);
+            border-bottom: 1px solid var(--color-divider);
+            color: var(--color-text);
+        }
+
+        /* Barra de progreso de ventas por categoria */
+        .cat-grid { display: grid; gap: var(--space-3); }
+        .cat-item {
+            display: grid;
+            grid-template-columns: 130px 1fr 60px;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        .cat-nombre { font-size: 0.9375rem; font-weight: 500; }
+        .cat-barra-wrap {
+            background: var(--color-divider);
+            border-radius: var(--radius-full, 9999px);
+            height: 10px;
+            overflow: hidden;
+        }
+        .cat-barra {
+            height: 100%;
+            border-radius: var(--radius-full, 9999px);
+            background: var(--color-primary);
+            transition: width 0.6s cubic-bezier(0.16,1,0.3,1);
+        }
+        .cat-barra.perecible { background: var(--color-warn); }
+        .cat-barra.bebida    { background: #4f98a3; }
+        .cat-valor { font-size: 0.875rem; font-weight: 600;
+                     text-align: right; color: var(--color-text-muted); }
+
+        /* ============================================================
+           PANEL DE ALERTAS SMART REFILL
+        ============================================================ */
+        .alertas-lista { display: grid; gap: var(--space-4); }
+
+        .alerta-card {
+            border-radius: var(--radius-lg);
+            padding: var(--space-5) var(--space-6);
+            border: 1px solid;
+            box-shadow: var(--shadow-sm);
+        }
+        .alerta-card.preventiva {
+            background: var(--color-warn-bg);
+            border-color: var(--color-warn-border);
+        }
+        .alerta-card.critica {
+            background: var(--color-error-bg);
+            border-color: var(--color-error-border);
+        }
+        .alerta-card.revisada {
+            background: var(--color-success-bg);
+            border-color: var(--color-success-border);
+            opacity: 0.75;
+        }
+
+        .alerta-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-2);
+            flex-wrap: wrap;
+            gap: var(--space-2);
+        }
+        .alerta-nivel {
+            display: inline-flex; align-items: center; gap: var(--space-2);
+            font-size: 0.8125rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.06em;
+            padding: var(--space-1) var(--space-3);
+            border-radius: var(--radius-full, 9999px);
+        }
+        .alerta-nivel.preventiva { color: var(--color-warn); background: rgba(209,153,0,0.12); }
+        .alerta-nivel.critica    { color: var(--color-error); background: rgba(161,44,44,0.10); }
+        .alerta-nivel.revisada   { color: var(--color-success); background: rgba(67,122,34,0.10); }
+
+        .alerta-fecha { font-size: 0.8125rem; color: var(--color-text-faint); }
+        .alerta-mensaje { font-size: 0.9375rem; color: var(--color-text); margin-bottom: var(--space-3); }
+
+        .alerta-estadisticas {
+            display: flex; gap: var(--space-6); flex-wrap: wrap;
+            margin-bottom: var(--space-4);
+        }
+        .alerta-stat { font-size: 0.8125rem; color: var(--color-text-muted); }
+        .alerta-stat strong { color: var(--color-text); font-weight: 600; }
+
+        /* Formulario de nota del administrador */
+        .alerta-accion { display: flex; flex-direction: column; gap: var(--space-2); }
+        .alerta-accion textarea {
+            padding: var(--space-3) var(--space-4);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            background: var(--color-surface);
+            color: var(--color-text);
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            resize: vertical;
+            min-height: 64px;
+        }
+        .alerta-accion textarea:focus { outline: 2px solid var(--color-primary); }
+        .btn-revisar {
+            align-self: flex-end;
+            display: inline-flex; align-items: center; gap: var(--space-2);
+            padding: var(--space-2) var(--space-5);
+            background: var(--color-success);
+            color: #ffffff;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem; font-weight: 600;
+        }
+        .btn-revisar:hover { opacity: 0.9; }
+        .btn-revisar:disabled { opacity: 0.5; pointer-events: none; }
+
+        /* Nota del admin cuando ya esta revisada */
+        .nota-revisada {
+            font-size: 0.875rem;
+            color: var(--color-success);
+            font-style: italic;
+            margin-top: var(--space-2);
+        }
+
+        /* Estado vacio cuando no hay alertas */
+        .sin-alertas {
+            display: flex; flex-direction: column; align-items: center;
+            text-align: center; padding: var(--space-12) var(--space-8);
+            color: var(--color-text-muted);
+        }
+        .sin-alertas svg { width: 48px; height: 48px; color: var(--color-text-faint); margin-bottom: var(--space-4); }
+        .sin-alertas h3  { color: var(--color-text); font-size: 1rem; margin-bottom: var(--space-2); }
+        .sin-alertas p   { font-size: 0.9375rem; max-width: 36ch; }
+
+        /* ============================================================
+           TABLA DE VENTAS POR PRODUCTO
+        ============================================================ */
+        .tabla-productos {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9375rem;
+        }
+        .tabla-productos thead tr {
+            background: var(--color-surface);
+            border-bottom: 2px solid var(--color-border);
+        }
+        .tabla-productos th {
+            padding: var(--space-3) var(--space-4);
+            text-align: left;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--color-text-muted);
+        }
+        .tabla-productos tbody tr {
+            border-bottom: 1px solid var(--color-divider);
+            transition: background var(--transition);
+        }
+        .tabla-productos tbody tr:hover { background: var(--color-surface); }
+        .tabla-productos td {
+            padding: var(--space-3) var(--space-4);
+            font-variant-numeric: tabular-nums;
+        }
+        .tabla-wrap {
+            background: var(--color-surface-2);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* ============================================================
+           RESPONSIVE MOVIL
+        ============================================================ */
+        @media (max-width: 640px) {
+            .topbar { padding: var(--space-3) var(--space-4); }
+            .main   { padding: var(--space-6) var(--space-4); }
+            .cat-item { grid-template-columns: 100px 1fr 50px; }
+            .tabla-productos th:nth-child(3),
+            .tabla-productos td:nth-child(3) { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================
+         BARRA SUPERIOR
+    ============================================================ -->
+    <header class="topbar">
+        <a class="topbar-brand" href="#">
+            <!-- Logo SVG inline de NexCaja -->
+            <svg viewBox="0 0 28 28" fill="none" aria-label="NexCaja">
+                <rect x="2" y="6" width="24" height="16" rx="3" stroke="currentColor" stroke-width="2"/>
+                <path d="M2 11h24" stroke="currentColor" stroke-width="2"/>
+                <rect x="6" y="15" width="4" height="4" rx="1" fill="currentColor"/>
+                <rect x="12" y="15" width="4" height="4" rx="1" fill="currentColor"/>
+                <path d="M20 15h2v4h-2z" fill="currentColor"/>
+            </svg>
+            NexCaja
+        </a>
+        <div class="topbar-right">
+            <!-- Badge que muestra cuantas alertas pendientes hay -->
+            <button class="badge-alertas oculto" id="badgeAlertas"
+                    onclick="document.getElementById('seccionAlertas').scrollIntoView({behavior:'smooth'})">
+                <i data-lucide="bell" style="width:14px;height:14px"></i>
+                <span id="numAlertas">0</span> alertas pendientes
+            </button>
+
+            <!-- Toggle modo oscuro -->
+            <button class="btn-toggle" data-theme-toggle aria-label="Cambiar tema">
+                <i data-lucide="moon" style="width:18px;height:18px"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ============================================================
+         CONTENIDO PRINCIPAL
+    ============================================================ -->
+    <main class="main">
+
+        <!-- Cabecera de pagina -->
+        <div class="page-header">
+            <div>
+                <h1>Dashboard de Cierre</h1>
+                <p>Reporte de ventas del dia y alertas Smart Refill para SurtiMarket</p>
+            </div>
+
+            <!-- Selector de fecha y boton -->
+            <form class="fecha-form" onsubmit="return false;">
+                <label for="inputFecha">Fecha del reporte</label>
+                <input type="date" id="inputFecha">
+                <button class="btn-primary" id="btnGenerar" onclick="cargarReporte()">
+                    <i data-lucide="bar-chart-2" style="width:16px;height:16px"></i>
+                    Generar reporte
+                </button>
+            </form>
+        </div>
+
+        <!-- Estado de carga -->
+        <div class="estado-carga oculto" id="estadoCarga">
+            <div class="spinner"></div>
+            Consultando ventas del dia...
+        </div>
+
+        <!-- Contenido del reporte (se muestra al cargar datos) -->
+        <div id="contenidoReporte" class="oculto">
+
+            <!-- KPIs numericos -->
+            <div class="kpis" id="kpis"></div>
+
+            <!-- Ventas por categoria con barras de progreso -->
+            <div class="seccion">
+                <p class="seccion-titulo">Ventas por categoria</p>
+                <div class="cat-grid" id="catGrid"></div>
+            </div>
+
+            <!-- Alertas Smart Refill -->
+            <div class="seccion" id="seccionAlertas">
+                <p class="seccion-titulo">Alertas Smart Refill</p>
+                <div class="alertas-lista" id="alertasLista"></div>
+            </div>
+
+            <!-- Tabla de productos mas vendidos -->
+            <div class="seccion">
+                <p class="seccion-titulo">Detalle de ventas por producto</p>
+                <div class="tabla-wrap">
+                    <table class="tabla-productos">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Producto</th>
+                                <th>Unidades vendidas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaProductos"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div><!-- fin contenidoReporte -->
+
+    </main>
+
+    <!-- ============================================================
+         JAVASCRIPT: logica del dashboard
+    ============================================================ -->
+    <script>
+        // ----------------------------------------------------------------
+        // URL base del backend. Cambiar si el servidor corre en otro puerto.
+        // ----------------------------------------------------------------
+        const API_BASE = 'http://localhost:8080/api';
+
+        // ----------------------------------------------------------------
+        // Inicializacion: poner la fecha de hoy en el selector
+        // ----------------------------------------------------------------
+        (function inicializar() {
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('inputFecha').value = hoy;
+            lucide.createIcons(); // Activa todos los iconos <i data-lucide="...">
+
+            // Toggle modo oscuro
+            const toggle = document.querySelector('[data-theme-toggle]');
+            const html   = document.documentElement;
+            let tema = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            html.setAttribute('data-theme', tema);
+            actualizarIconoTema(tema);
+
+            toggle.addEventListener('click', () => {
+                tema = tema === 'dark' ? 'light' : 'dark';
+                html.setAttribute('data-theme', tema);
+                actualizarIconoTema(tema);
+            });
+        })();
+
+        function actualizarIconoTema(tema) {
+            const toggle = document.querySelector('[data-theme-toggle]');
+            toggle.innerHTML = tema === 'dark'
+                ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
+                : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+        }
+
+        // ----------------------------------------------------------------
+        // Carga el reporte del backend y actualiza toda la pantalla
+        // ----------------------------------------------------------------
+        async function cargarReporte() {
+            const fecha  = document.getElementById('inputFecha').value;
+            const btnGen = document.getElementById('btnGenerar');
+
+            // Mostrar estado de carga
+            mostrar('estadoCarga');
+            ocultar('contenidoReporte');
+            btnGen.disabled = true;
+
+            try {
+                // Llamamos al endpoint del backend
+                const respuesta = await fetch(`${API_BASE}/reportes/cierre?fecha=${fecha}`);
+                if (!respuesta.ok) throw new Error(`Error del servidor: ${respuesta.status}`);
+                const datos = await respuesta.json();
+
+                // Actualizamos todas las secciones con los datos recibidos
+                renderizarKPIs(datos);
+                renderizarCategorias(datos.ventasPorCategoria);
+                renderizarAlertas(datos);
+                renderizarTablaProductos(datos.ventasPorProducto);
+                actualizarBadgeAlertas(datos.cantidadAlertasPendientes);
+
+                // Mostrar contenido
+                ocultar('estadoCarga');
+                mostrar('contenidoReporte');
+
+            } catch (error) {
+                ocultar('estadoCarga');
+                alert('No se pudo conectar con el servidor. Asegurate de que el backend este corriendo en localhost:8080.\n\nDetalle: ' + error.message);
+            } finally {
+                btnGen.disabled = false;
+            }
+        }
+
+        // ----------------------------------------------------------------
+        // KPIs: tarjetas numericas en la parte superior
+        // ----------------------------------------------------------------
+        function renderizarKPIs(datos) {
+            const contenedor = document.getElementById('kpis');
+            const totalDinero = (datos.totalDineroVendido || 0).toFixed(2);
+            const numAlertas  = datos.cantidadAlertasPendientes || 0;
+
+            contenedor.innerHTML = `
+                <div class="kpi">
+                    <div class="kpi-label">Transacciones</div>
+                    <div class="kpi-valor">${datos.totalTransacciones || 0}</div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-label">Total recaudado</div>
+                    <div class="kpi-valor verde">$${totalDinero}</div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-label">Alertas pendientes</div>
+                    <div class="kpi-valor" style="color: ${numAlertas > 0 ? 'var(--color-error)' : 'var(--color-success)'}">
+                        ${numAlertas}
+                    </div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-label">Fecha del reporte</div>
+                    <div class="kpi-valor" style="font-size:1.1rem">${datos.fecha || '-'}</div>
+                </div>
+            `;
+        }
+
+        // ----------------------------------------------------------------
+        // Barras de progreso por categoria
+        // ----------------------------------------------------------------
+        function renderizarCategorias(ventasPorCategoria) {
+            const contenedor = document.getElementById('catGrid');
+            if (!ventasPorCategoria || Object.keys(ventasPorCategoria).length === 0) {
+                contenedor.innerHTML = '<p style="color:var(--color-text-muted);font-size:0.9375rem">Sin datos de ventas para esta fecha.</p>';
+                return;
+            }
+
+            const maxValor = Math.max(...Object.values(ventasPorCategoria));
+
+            contenedor.innerHTML = Object.entries(ventasPorCategoria)
+                .sort((a, b) => b[1] - a[1])
+                .map(([categoria, cantidad]) => {
+                    const porcentaje = maxValor > 0 ? (cantidad / maxValor * 100).toFixed(1) : 0;
+                    const claseBarra = categoria === 'PERECIBLE' ? 'perecible'
+                                     : categoria === 'BEBIDA'    ? 'bebida' : '';
+                    return `
+                        <div class="cat-item">
+                            <span class="cat-nombre">${formatearCategoria(categoria)}</span>
+                            <div class="cat-barra-wrap">
+                                <div class="cat-barra ${claseBarra}" style="width:${porcentaje}%"></div>
+                            </div>
+                            <span class="cat-valor">${cantidad} uds.</span>
+                        </div>`;
+                }).join('');
+        }
+
+        // ----------------------------------------------------------------
+        // Panel de alertas Smart Refill
+        // ----------------------------------------------------------------
+        function renderizarAlertas(datos) {
+            const contenedor = document.getElementById('alertasLista');
+
+            if (!datos.hayAlertas || !datos.alertas || datos.alertas.length === 0) {
+                contenedor.innerHTML = `
+                    <div class="sin-alertas">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M9 12l2 2 4-4"/>
+                            <circle cx="12" cy="12" r="9"/>
+                        </svg>
+                        <h3>Todo en orden</h3>
+                        <p>El consumo de productos perecibles y bebidas se mantuvo dentro del rango normal hoy.</p>
+                    </div>`;
+                return;
+            }
+
+            // Cargamos las alertas pendientes desde el backend para poder marcarlas
+            cargarYRenderizarAlertasPendientes();
+        }
+
+        async function cargarYRenderizarAlertasPendientes() {
+            try {
+                const respuesta = await fetch(`${API_BASE}/reportes/alertas/pendientes`);
+                const alertas   = await respuesta.json();
+                const contenedor = document.getElementById('alertasLista');
+
+                if (!alertas || alertas.length === 0) {
+                    contenedor.innerHTML = estadoSinAlertas();
+                    return;
+                }
+
+                contenedor.innerHTML = alertas.map(alerta => tarjetaAlerta(alerta)).join('');
+                lucide.createIcons();
+            } catch (e) {
+                // Si falla la segunda llamada, mostramos los mensajes del reporte directamente
+                console.warn('No se pudo cargar detalle de alertas:', e);
+            }
+        }
+
+        function tarjetaAlerta(alerta) {
+            const esRevisada   = alerta.estadoAlerta === 'REVISADA';
+            const nivel        = alerta.nivelAlerta.toLowerCase();
+            const claseCard    = esRevisada ? 'revisada' : nivel;
+            const etiquetaNivel = esRevisada ? 'Revisada' : alerta.nivelAlerta;
+
+            const fecha = new Date(alerta.fechaHora).toLocaleString('es-EC', {
+                dateStyle: 'medium', timeStyle: 'short'
+            });
+
+            const accionHTML = esRevisada
+                ? `<p class="nota-revisada">&#x2713; Revisada — ${alerta.notaAdministrador || 'Sin nota'}</p>`
+                : `<div class="alerta-accion">
+                       <textarea id="nota-${alerta.id}" placeholder="Nota del administrador (opcional)..."></textarea>
+                       <button class="btn-revisar" onclick="marcarRevisada(${alerta.id})">
+                           <i data-lucide="check" style="width:15px;height:15px"></i>
+                           Marcar como revisada
+                       </button>
+                   </div>`;
+
+            return `
+                <div class="alerta-card ${claseCard}" id="alerta-card-${alerta.id}">
+                    <div class="alerta-header">
+                        <span class="alerta-nivel ${claseCard}">${etiquetaNivel}</span>
+                        <span class="alerta-fecha">${fecha}</span>
+                    </div>
+                    <p class="alerta-mensaje">${alerta.mensaje}</p>
+                    <div class="alerta-estadisticas">
+                        <span class="alerta-stat">Categoria: <strong>${formatearCategoria(alerta.categoria)}</strong></span>
+                        <span class="alerta-stat">Vendido: <strong>${alerta.volumenVentas} uds.</strong></span>
+                        <span class="alerta-stat">Umbral normal: <strong>${alerta.umbralNormal} uds.</strong></span>
+                    </div>
+                    ${accionHTML}
+                </div>`;
+        }
+
+        // ----------------------------------------------------------------
+        // Marcar una alerta como revisada
+        // ----------------------------------------------------------------
+        async function marcarRevisada(alertaId) {
+            const nota = document.getElementById(`nota-${alertaId}`)?.value || '';
+            const btnRev = document.querySelector(`#alerta-card-${alertaId} .btn-revisar`);
+            if (btnRev) btnRev.disabled = true;
+
+            try {
+                const respuesta = await fetch(`${API_BASE}/reportes/alertas/${alertaId}/revisar`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nota })
+                });
+
+                if (!respuesta.ok) throw new Error('Error al actualizar la alerta');
+                const alertaActualizada = await respuesta.json();
+
+                // Reemplazamos la tarjeta con la version revisada
+                const cardExistente = document.getElementById(`alerta-card-${alertaId}`);
+                if (cardExistente) {
+                    cardExistente.outerHTML = tarjetaAlerta(alertaActualizada);
+                    lucide.createIcons();
+                }
+
+                // Actualizamos el badge de alertas pendientes
+                const pendientes = document.querySelectorAll('.alerta-card.preventiva, .alerta-card.critica').length;
+                actualizarBadgeAlertas(pendientes);
+
+            } catch (error) {
+                alert('No se pudo marcar la alerta como revisada.\nDetalle: ' + error.message);
+                if (btnRev) btnRev.disabled = false;
+            }
+        }
+
+        // ----------------------------------------------------------------
+        // Tabla de productos vendidos
+        // ----------------------------------------------------------------
+        function renderizarTablaProductos(ventasPorProducto) {
+            const tbody = document.getElementById('tablaProductos');
+            if (!ventasPorProducto || Object.keys(ventasPorProducto).length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="padding:var(--space-6);text-align:center;color:var(--color-text-muted)">Sin datos de ventas.</td></tr>`;
+                return;
+            }
+
+            const ordenados = Object.entries(ventasPorProducto)
+                .sort((a, b) => b[1] - a[1]);
+
+            tbody.innerHTML = ordenados.map(([nombre, cantidad], i) => `
+                <tr>
+                    <td style="color:var(--color-text-faint);font-size:0.875rem">${i + 1}</td>
+                    <td>${nombre}</td>
+                    <td style="font-weight:600">${cantidad}</td>
+                </tr>`).join('');
+        }
+
+        // ----------------------------------------------------------------
+        // Badge de alertas en la barra superior
+        // ----------------------------------------------------------------
+        function actualizarBadgeAlertas(cantidad) {
+            const badge = document.getElementById('badgeAlertas');
+            const num   = document.getElementById('numAlertas');
+            num.textContent = cantidad;
+            if (cantidad > 0) {
+                badge.classList.remove('oculto');
+            } else {
+                badge.classList.add('oculto');
+            }
+        }
+
+        // ----------------------------------------------------------------
+        // Utilidades
+        // ----------------------------------------------------------------
+        function mostrar(id) { document.getElementById(id).classList.remove('oculto'); }
+        function ocultar(id) { document.getElementById(id).classList.add('oculto'); }
+
+        function formatearCategoria(cat) {
+            const mapa = { PERECIBLE: 'Perecibles', BEBIDA: 'Bebidas', NO_PERECIBLE: 'No perecibles' };
+            return mapa[cat] || cat;
+        }
+
+        function estadoSinAlertas() {
+            return `<div class="sin-alertas">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/>
+                </svg>
+                <h3>Todo en orden</h3>
+                <p>El consumo de productos perecibles y bebidas se mantuvo dentro del rango normal.</p>
+            </div>`;
+        }
+    </script>
+</body>
+</html>
