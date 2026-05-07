@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexCaja — Caja</title>
+
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* ============================================================
+           TOKENS DE DISEÑO (misma paleta que dashboard.html)
+        ============================================================ */
+        :root {
+            --font-body: 'Satoshi', 'Helvetica Neue', sans-serif;
+            --color-bg:              #f7f6f2;
+            --color-surface:         #f9f8f5;
+            --color-surface-2:       #ffffff;
+            --color-border:          #d4d1ca;
+            --color-divider:         #e8e6e1;
+            --color-text:            #28251d;
+            --color-text-muted:      #7a7974;
+            --color-text-faint:      #bab9b4;
+            --color-primary:         #01696f;
+            --color-primary-hover:   #0c4e54;
+            --color-primary-light:   #cedcd8;
+            --color-error:           #a12c2c;
+            --color-error-bg:        #fdf0f0;
+            --color-error-border:    #e8a0a0;
+            --color-success:         #437a22;
+            --color-success-bg:      #f0f7ea;
+            --color-warn:            #d19900;
+            --color-warn-bg:         #fdf8e7;
+            --space-1:0.25rem; --space-2:0.5rem; --space-3:0.75rem;
+            --space-4:1rem;    --space-5:1.25rem; --space-6:1.5rem;
+            --space-8:2rem;    --space-10:2.5rem; --space-12:3rem;
+            --radius-sm:0.375rem; --radius-md:0.5rem;
+            --radius-lg:0.75rem;  --radius-xl:1rem;
+            --shadow-sm: 0 1px 3px rgba(40,37,29,0.07);
+            --shadow-md: 0 4px 12px rgba(40,37,29,0.09);
+            --transition: 180ms cubic-bezier(0.16,1,0.3,1);
+        }
+        [data-theme="dark"] {
+            --color-bg:#171614; --color-surface:#1c1b19; --color-surface-2:#242320;
+            --color-border:#393836; --color-divider:#2a2927;
+            --color-text:#cdccca; --color-text-muted:#797876; --color-text-faint:#5a5957;
+            --color-primary:#4f98a3; --color-primary-hover:#227f8b; --color-primary-light:#1f3535;
+            --color-error:#dd6969; --color-error-bg:#2a1010; --color-error-border:#7a2020;
+            --color-success:#6daa45; --color-success-bg:#0f1e09;
+            --color-warn:#e8af34; --color-warn-bg:#2a2310;
+            --shadow-sm:0 1px 3px rgba(0,0,0,0.25); --shadow-md:0 4px 12px rgba(0,0,0,0.35);
+        }
+
+        /* ============================================================
+           RESET
+        ============================================================ */
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+        html{-webkit-font-smoothing:antialiased;}
+        body{
+            font-family:var(--font-body); font-size:1rem; line-height:1.5;
+            color:var(--color-text); background:var(--color-bg);
+            height:100dvh; overflow:hidden; /* caja es pantalla fija */
+            display:flex; flex-direction:column;
+            transition:background var(--transition),color var(--transition);
+        }
+        button{cursor:pointer;border:none;background:none;font:inherit;color:inherit;}
+        input,select,textarea{font:inherit;color:inherit;}
+        a,button,input,select{
+            transition:color var(--transition),background var(--transition),
+                        border-color var(--transition),box-shadow var(--transition);
+        }
+        :focus-visible{outline:2px solid var(--color-primary);outline-offset:3px;border-radius:var(--radius-sm);}
+
+        /* ============================================================
+           TOPBAR
+        ============================================================ */
+        .topbar{
+            flex-shrink:0;
+            display:flex; align-items:center; justify-content:space-between;
+            padding:var(--space-3) var(--space-6);
+            background:var(--color-surface);
+            border-bottom:1px solid var(--color-border);
+            box-shadow:var(--shadow-sm);
+            z-index:10;
+        }
+        .topbar-brand{
+            display:flex; align-items:center; gap:var(--space-2);
+            font-weight:700; font-size:1.0625rem;
+            color:var(--color-primary); text-decoration:none;
+        }
+        .topbar-brand svg{width:24px;height:24px;}
+        .topbar-center{
+            font-size:0.875rem; color:var(--color-text-muted);
+            display:flex; align-items:center; gap:var(--space-2);
+        }
+        .topbar-right{display:flex;align-items:center;gap:var(--space-2);}
+        .btn-icon{
+            width:34px; height:34px; display:flex; align-items:center;
+            justify-content:center; border-radius:var(--radius-md);
+            color:var(--color-text-muted);
+        }
+        .btn-icon:hover{background:var(--color-divider);color:var(--color-text);}
+        .btn-dashboard{
+            display:inline-flex; align-items:center; gap:var(--space-2);
+            padding:var(--space-1) var(--space-4);
+            border:1px solid var(--color-border);
+            border-radius:var(--radius-md);
+            font-size:0.8125rem; font-weight:500;
+            color:var(--color-text-muted);
+        }
+        .btn-dashboard:hover{background:var(--color-surface-2);color:var(--color-text);}
+
+        /* ============================================================
+           LAYOUT PRINCIPAL: dos columnas
+           Izquierda: catalogo de productos
+           Derecha:   carrito + cobro
+        ============================================================ */
+        .layout{
+            flex:1; display:grid;
+            grid-template-columns:1fr 380px;
+            overflow:hidden;
+        }
+
+        /* ---------- PANEL IZQUIERDO: catalogo ---------- */
+        .panel-catalogo{
+            display:flex; flex-direction:column;
+            border-right:1px solid var(--color-border);
+            overflow:hidden;
+        }
+        .catalogo-header{
+            flex-shrink:0;
+            padding:var(--space-4) var(--space-5);
+            border-bottom:1px solid var(--color-divider);
+            background:var(--color-surface);
+        }
+        .catalogo-header h2{
+            font-size:0.9375rem; font-weight:700;
+            margin-bottom:var(--space-3);
+        }
+        .buscador-wrap{
+            display:flex; align-items:center; gap:var(--space-2);
+            background:var(--color-surface-2);
+            border:1px solid var(--color-border);
+            border-radius:var(--radius-md);
+            padding:var(--space-2) var(--space-3);
+        }
+        .buscador-wrap svg{width:16px;height:16px;color:var(--color-text-faint);flex-shrink:0;}
+        .buscador-wrap input{
+            flex:1; border:none; background:none; outline:none;
+            font-size:0.9375rem;
+        }
+
+        /* Filtros de categoria */
+        .filtros{
+            display:flex; gap:var(--space-2); flex-wrap:wrap;
+            padding:var(--space-3) var(--space-5);
+            border-bottom:1px solid var(--color-divider);
+            flex-shrink:0;
+            background:var(--color-surface);
+        }
+        .filtro-btn{
+            padding:var(--space-1) var(--space-3);
+            border-radius:9999px;
+            font-size:0.8125rem; font-weight:500;
+            border:1px solid var(--color-border);
+            color:var(--color-text-muted);
+            background:var(--color-surface-2);
+        }
+        .filtro-btn:hover{border-color:var(--color-primary);color:var(--color-primary);}
+        .filtro-btn.activo{
+            background:var(--color-primary); color:#fff;
+            border-color:var(--color-primary);
+        }
+
+        /* Grilla de productos */
+        .productos-scroll{
+            flex:1; overflow-y:auto; padding:var(--space-4) var(--space-5);
+        }
+        .productos-grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
+            gap:var(--space-3);
+        }
+        .producto-card{
+            background:var(--color-surface-2);
+            border:1px solid var(--color-border);
+            border-radius:var(--radius-lg);
+            padding:var(--space-4);
+            cursor:pointer;
+            user-select:none;
+            box-shadow:var(--shadow-sm);
+            transition:transform var(--transition),box-shadow var(--transition),
+                        border-color var(--transition);
+        }
+        .producto-card:hover{
+            transform:translateY(-2px);
+            box-shadow:var(--shadow-md);
+            border-color:var(--color-primary);
+        }
+        .producto-card:active{transform:scale(0.97);}
+        .producto-emoji{
+            font-size:1.75rem; margin-bottom:var(--space-2); line-height:1;
+        }
+        .producto-nombre{
+            font-size:0.875rem; font-weight:600; line-height:1.3;
+            margin-bottom:var(--space-1);
+        }
+        .producto-precio{
+            font-size:0.9375rem; font-weight:700;
+            color:var(--color-primary);
+        }
+        .producto-stock{
+            font-size:0.75rem; color:var(--color-text-faint);
+            margin-top:var(--space-1);
+        }
+        .producto-card.sin-stock{
+            opacity:0.45; cursor:not-allowed;
+            pointer-events:none;
+        }
+
+        /* ---------- PANEL DERECHO: carrito + cobro ---------- */
+        .panel-caja{
+            display:flex; flex-direction:column;
+            background:var(--color-surface);
+            overflow:hidden;
+        }
+
+        /* Titulo del carrito */
+        .carrito-header{
+            flex-shrink:0;
+            display:flex; align-items:center; justify-content:space-between;
+            padding:var(--space-4) var(--space-5);
+            border-bottom:1px solid var(--color-divider);
+        }
+        .carrito-header h2{font-size:0.9375rem; font-weight:700;}
+        .btn-vaciar{
+            font-size:0.8125rem; color:var(--color-text-faint);
+            display:flex; align-items:center; gap:var(--space-1);
+        }
+        .btn-vaciar:hover{color:var(--color-error);}
+
+        /* Items del carrito */
+        .carrito-scroll{flex:1; overflow-y:auto; padding:var(--space-3) var(--space-5);}
+        .carrito-vacio{
+            display:flex; flex-direction:column; align-items:center;
+            justify-content:center; height:100%;
+            color:var(--color-text-faint); text-align:center;
+            gap:var(--space-3);
+        }
+        .carrito-vacio svg{width:40px;height:40px;}
+        .carrito-vacio p{font-size:0.875rem; max-width:20ch; line-height:1.4;}
+
+        .carrito-item{
+            display:flex; align-items:center; gap:var(--space-3);
+            padding:var(--space-3) 0;
+            border-bottom:1px solid var(--color-divider);
+        }
+        .carrito-item:last-child{border-bottom:none;}
+        .ci-nombre{
+            flex:1; font-size:0.9rem; font-weight:500; line-height:1.3;
+        }
+        .ci-precio{font-size:0.8125rem; color:var(--color-text-muted);}
+        .ci-controles{
+            display:flex; align-items:center; gap:var(--space-1);
+        }
+        .ci-btn{
+            width:28px; height:28px; border-radius:var(--radius-md);
+            display:flex; align-items:center; justify-content:center;
+            background:var(--color-surface-2);
+            border:1px solid var(--color-border);
+            font-size:1rem; font-weight:700; color:var(--color-text);
+        }
+        .ci-btn:hover{background:var(--color-primary-light);border-color:var(--color-primary);}
+        .ci-btn.eliminar:hover{background:var(--color-error-bg);border-color:var(--color-error-border);color:var(--color-error);}
+        .ci-cantidad{
+            width:28px; text-align:center;
+            font-size:0.9375rem; font-weight:700;
+        }
+        .ci-subtotal{
+            font-size:0.9375rem; font-weight:700;
+            min-width:52px; text-align:right;
+            color:var(--color-text);
+        }
+
+        /* Seccion de pago */
+        .pago-seccion{
+            flex-shrink:0;
+            border-top:2px solid var(--color-border);
+            padding:var(--space-4) var(--space-5);
+            background:var(--color-surface);
+        }
+        .pago-total{
+            display:flex; justify-content:space-between; align-items:baseline;
+            margin-bottom:var(--space-4);
+        }
+        .pago-total-label{font-size:0.9375rem; color:var(--color-text-muted); font-weight:500;}
+        .pago-total-valor{
+            font-size:1.75rem; font-weight:700; color:var(--color-text);
+            font-variant-numeric:tabular-nums;
+        }
+
+        /* Metodo de pago y monto */
+        .pago-fila{
+            display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3);
+            margin-bottom:var(--space-3);
+        }
+        .pago-campo label{
+            display:block; font-size:0.8125rem; font-weight:500;
+            color:var(--color-text-muted); margin-bottom:var(--space-1);
+        }
+        .pago-campo select,
+        .pago-campo input{
+            width:100%; padding:var(--space-2) var(--space-3);
+            border:1px solid var(--color-border);
+            border-radius:var(--radius-md);
+            background:var(--color-surface-2);
+            font-size:0.9375rem;
+        }
+        .pago-campo select:focus,
+        .pago-campo input:focus{outline:2px solid var(--color-primary);outline-offset:2px;}
+
+        /* Vuelto */
+        .vuelto-chip{
+            display:flex; justify-content:space-between; align-items:center;
+            padding:var(--space-2) var(--space-4);
+            background:var(--color-success-bg);
+            border:1px solid #a8d080;
+            border-radius:var(--radius-md);
+            margin-bottom:var(--space-3);
+            font-size:0.9375rem;
+        }
+        .vuelto-chip .label{font-weight:500; color:var(--color-success);}
+        .vuelto-chip .valor{
+            font-weight:700; font-size:1.1rem;
+            color:var(--color-success);
+            font-variant-numeric:tabular-nums;
+        }
+        .vuelto-chip.oculto{display:none;}
+        .vuelto-chip.insuficiente{
+            background:var(--color-error-bg);
+            border-color:var(--color-error-border);
+        }
+        .vuelto-chip.insuficiente .label,
+        .vuelto-chip.insuficiente .valor{color:var(--color-error);}
+
+        /* Boton cobrar */
+        .btn-cobrar{
+            width:100%;
+            padding:var(--space-4);
+            background:var(--color-primary);
+            color:#fff;
+            border-radius:var(--radius-lg);
+            font-size:1rem; font-weight:700;
+            display:flex; align-items:center; justify-content:center; gap:var(--space-2);
+            letter-spacing:0.02em;
+        }
+        .btn-cobrar:hover{background:var(--color-primary-hover);}
+        .btn-cobrar:active{transform:scale(0.98);}
+        .btn-cobrar:disabled{opacity:0.4; pointer-events:none;}
+
+        /* ============================================================
+           MODAL DE CONFIRMACION DE VENTA
+        ============================================================ */
+        .modal-overlay{
+            position:fixed; inset:0; z-index:200;
+            background:rgba(0,0,0,0.4);
+            display:flex; align-items:center; justify-content:center;
+            padding:var(--space-4);
+            opacity:0; pointer-events:none;
+            transition:opacity 200ms;
+        }
+        .modal-overlay.visible{opacity:1; pointer-events:all;}
+        .modal{
+            background:var(--color-surface-2);
+            border-radius:var(--radius-xl);
+            padding:var(--space-8);
+            max-width:420px; width:100%;
+            box-shadow:0 20px 60px rgba(0,0,0,0.2);
+            transform:translateY(16px);
+            transition:transform 220ms cubic-bezier(0.16,1,0.3,1);
+        }
+        .modal-overlay.visible .modal{transform:translateY(0);}
+        .modal-icono{
+            width:56px; height:56px; border-radius:50%;
+            background:var(--color-success-bg);
+            display:flex; align-items:center; justify-content:center;
+            margin:0 auto var(--space-4);
+            color:var(--color-success);
+        }
+        .modal-icono svg{width:28px;height:28px;}
+        .modal h2{
+            text-align:center; font-size:1.25rem; font-weight:700;
+            margin-bottom:var(--space-2);
+        }
+        .modal p{
+            text-align:center; color:var(--color-text-muted);
+            font-size:0.9375rem; margin-bottom:var(--space-6);
+        }
+        .modal-detalle{
+            background:var(--color-surface);
+            border-radius:var(--radius-md);
+            padding:var(--space-4);
+            margin-bottom:var(--space-6);
+        }
+        .modal-fila{
+            display:flex; justify-content:space-between;
+            font-size:0.9375rem; padding:var(--space-1) 0;
+            border-bottom:1px solid var(--color-divider);
+        }
+        .modal-fila:last-child{border-bottom:none;}
+        .modal-fila .label{color:var(--color-text-muted);}
+        .modal-fila .valor{font-weight:600; font-variant-numeric:tabular-nums;}
+        .modal-fila .valor.verde{color:var(--color-success);font-size:1.1rem;}
+        .btn-nueva-venta{
+            width:100%; padding:var(--space-3);
+            background:var(--color-primary); color:#fff;
+            border-radius:var(--radius-lg);
+            font-size:0.9375rem; font-weight:700;
+        }
+        .btn-nueva-venta:hover{background:var(--color-primary-hover);}
+
+        /* ============================================================
+           RESPONSIVE
+        ============================================================ */
+        @media(max-width:768px){
+            body{overflow:auto;}
+            .layout{grid-template-columns:1fr; height:auto;}
+            .panel-caja{
+                border-top:2px solid var(--color-border);
+                min-height:400px;
+            }
+            .productos-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}
+        }
+
+        /* Utilidades */
+        .oculto{display:none!important;}
+        .spinner{
+            width:18px;height:18px;
+            border:2px solid rgba(255,255,255,0.4);
+            border-top-color:#fff;
+            border-radius:50%;
+            animation:girar 0.7s linear infinite;
+        }
+        @keyframes girar{to{transform:rotate(360deg);}}
+    </style>
+</head>
+<body>
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <a class="topbar-brand" href="#">
+            <svg viewBox="0 0 28 28" fill="none" aria-label="NexCaja">
+                <rect x="2" y="6" width="24" height="16" rx="3" stroke="currentColor" stroke-width="2"/>
+                <path d="M2 11h24" stroke="currentColor" stroke-width="2"/>
+                <rect x="6" y="15" width="4" height="4" rx="1" fill="currentColor"/>
+                <rect x="12" y="15" width="4" height="4" rx="1" fill="currentColor"/>
+                <path d="M20 15h2v4h-2z" fill="currentColor"/>
+            </svg>
+            NexCaja
+        </a>
+        <div class="topbar-center">
+            <i data-lucide="user" style="width:15px;height:15px"></i>
+            <span id="nombreCajero">Cajero</span>
+            <span style="color:var(--color-text-faint)">&bull;</span>
+            <span id="fechaHoy"></span>
+        </div>
+        <div class="topbar-right">
+            <a class="btn-dashboard" href="dashboard.html">
+                <i data-lucide="bar-chart-2" style="width:14px;height:14px"></i>
+                Dashboard
+            </a>
+            <button class="btn-icon" data-theme-toggle aria-label="Cambiar tema">
+                <i data-lucide="moon" style="width:17px;height:17px"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- LAYOUT PRINCIPAL -->
+    <div class="layout">
+
+        <!-- ==================== PANEL IZQUIERDO: CATALOGO ==================== -->
+        <section class="panel-catalogo" aria-label="Catalogo de productos">
+
+            <div class="catalogo-header">
+                <h2>Productos</h2>
+                <div class="buscador-wrap">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="buscador" placeholder="Buscar producto..."
+                           oninput="filtrarProductos()" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="filtros" role="group" aria-label="Filtrar por categoria">
+                <button class="filtro-btn activo" data-cat="TODOS" onclick="cambiarFiltro(this)">Todos</button>
+                <button class="filtro-btn" data-cat="PERECIBLE" onclick="cambiarFiltro(this)">🥐 Perecibles</button>
+                <button class="filtro-btn" data-cat="BEBIDA" onclick="cambiarFiltro(this)">🥤 Bebidas</button>
+                <button class="filtro-btn" data-cat="NO_PERECIBLE" onclick="cambiarFiltro(this)">🍫 No perecibles</button>
+            </div>
+
+            <div class="productos-scroll">
+                <!-- Skeleton de carga -->
+                <div class="productos-grid" id="skeletonGrid">
+                    <!-- Se genera por JS -->
+                </div>
+                <!-- Grilla real de productos -->
+                <div class="productos-grid oculto" id="productosGrid"></div>
+                <!-- Mensaje sin resultados -->
+                <p class="oculto" id="sinResultados"
+                   style="color:var(--color-text-muted);font-size:0.9375rem;padding:var(--space-4) 0">
+                    No se encontraron productos.
+                </p>
+            </div>
+        </section>
+
+        <!-- ==================== PANEL DERECHO: CARRITO + COBRO ==================== -->
+        <section class="panel-caja" aria-label="Carrito y cobro">
+
+            <div class="carrito-header">
+                <h2>Carrito
+                    <span id="contadorItems"
+                          style="font-size:0.8125rem;font-weight:500;color:var(--color-text-muted);margin-left:4px">
+                    </span>
+                </h2>
+                <button class="btn-vaciar" onclick="vaciarCarrito()">
+                    <i data-lucide="trash-2" style="width:14px;height:14px"></i>
+                    Vaciar
+                </button>
+            </div>
+
+            <div class="carrito-scroll" id="carritoScroll">
+                <!-- Carrito vacio (estado inicial) -->
+                <div class="carrito-vacio" id="carritoVacio">
+                    <i data-lucide="shopping-cart" style="width:40px;height:40px;color:var(--color-text-faint)"></i>
+                    <p>Toca un producto para agregarlo al carrito</p>
+                </div>
+                <!-- Lista de items -->
+                <div id="carritoItems"></div>
+            </div>
+
+            <!-- Seccion de pago -->
+            <div class="pago-seccion">
+                <div class="pago-total">
+                    <span class="pago-total-label">Total</span>
+                    <span class="pago-total-valor" id="totalDisplay">$0.00</span>
+                </div>
+
+                <div class="pago-fila">
+                    <div class="pago-campo">
+                        <label for="metodoPago">M&eacute;todo de pago</label>
+                        <select id="metodoPago" onchange="calcularVuelto()">
+                            <option value="EFECTIVO">Efectivo</option>
+                            <option value="TARJETA">Tarjeta</option>
+                        </select>
+                    </div>
+                    <div class="pago-campo" id="montoPagadoWrap">
+                        <label for="montoPagado">Monto recibido ($)</label>
+                        <input type="number" id="montoPagado" min="0" step="0.25"
+                               placeholder="0.00" oninput="calcularVuelto()">
+                    </div>
+                </div>
+
+                <!-- Chip de vuelto -->
+                <div class="vuelto-chip oculto" id="vueltoChip">
+                    <span class="label">Vuelto</span>
+                    <span class="valor" id="vueltoDisplay">$0.00</span>
+                </div>
+
+                <!-- Boton cobrar -->
+                <button class="btn-cobrar" id="btnCobrar" disabled onclick="cobrar()">
+                    <i data-lucide="check-circle" style="width:20px;height:20px"></i>
+                    Cobrar
+                </button>
+            </div>
+        </section>
+    </div><!-- fin .layout -->
+
+    <!-- ============================================================
+         MODAL DE VENTA EXITOSA
+    ============================================================ -->
+    <div class="modal-overlay" id="modalExito" role="dialog" aria-modal="true">
+        <div class="modal">
+            <div class="modal-icono">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M20 6L9 17l-5-5"/>
+                </svg>
+            </div>
+            <h2>¡Venta registrada!</h2>
+            <p>La transaccion se guardó correctamente en el sistema.</p>
+            <div class="modal-detalle" id="modalDetalle"></div>
+            <button class="btn-nueva-venta" onclick="nuevaVenta()">
+                <i data-lucide="plus" style="width:16px;height:16px"></i>
+                Nueva venta
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         JAVASCRIPT
+    ============================================================ -->
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        const CAJERO_ID = 1; // En produccion esto vendria del login
+
+        // Estado de la aplicacion
+        let todosLosProductos = [];
+        let carrito = []; // [{ producto, cantidad }]
+        let filtroActivo = 'TODOS';
+
+        // ----------------------------------------------------------------
+        // INICIALIZACION
+        // ----------------------------------------------------------------
+        (function init() {
+            // Fecha actual en el topbar
+            document.getElementById('fechaHoy').textContent =
+                new Date().toLocaleDateString('es-EC', { weekday:'short', day:'numeric', month:'short' });
+
+            // Activar iconos Lucide
+            lucide.createIcons();
+
+            // Toggle modo oscuro
+            const toggle = document.querySelector('[data-theme-toggle]');
+            const html   = document.documentElement;
+            let tema = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            html.setAttribute('data-theme', tema);
+            actualizarIconoTema(tema);
+            toggle.addEventListener('click', () => {
+                tema = tema === 'dark' ? 'light' : 'dark';
+                html.setAttribute('data-theme', tema);
+                actualizarIconoTema(tema);
+            });
+
+            // Esconder el campo monto cuando se selecciona Tarjeta
+            document.getElementById('metodoPago').addEventListener('change', function() {
+                const esTarjeta = this.value === 'TARJETA';
+                document.getElementById('montoPagadoWrap').style.opacity = esTarjeta ? '0.4' : '1';
+                if (esTarjeta) document.getElementById('vueltoChip').classList.add('oculto');
+                calcularVuelto();
+            });
+
+            // Mostrar skeletons mientras carga
+            mostrarSkeletons();
+
+            // Cargar productos del backend
+            cargarProductos();
+        })();
+
+        function actualizarIconoTema(tema) {
+            const t = document.querySelector('[data-theme-toggle]');
+            t.innerHTML = tema === 'dark'
+                ? '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
+                : '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+        }
+
+        // ----------------------------------------------------------------
+        // SKELETONS de carga
+        // ----------------------------------------------------------------
+        function mostrarSkeletons() {
+            const grid = document.getElementById('skeletonGrid');
+            grid.innerHTML = Array(8).fill(0).map(() => `
+                <div style="background:var(--color-surface-2);border:1px solid var(--color-border);
+                            border-radius:var(--radius-lg);padding:var(--space-4);height:110px;
+                            background: linear-gradient(90deg,var(--color-surface-2) 25%,
+                            var(--color-divider) 50%,var(--color-surface-2) 75%);
+                            background-size:200% 100%;
+                            animation:shimmer 1.5s ease-in-out infinite;"></div>
+            `).join('');
+
+            const style = document.createElement('style');
+            style.textContent = '@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}';
+            document.head.appendChild(style);
+        }
+
+        // ----------------------------------------------------------------
+        // CARGA DE PRODUCTOS desde el backend
+        // ----------------------------------------------------------------
+        async function cargarProductos() {
+            try {
+                const r = await fetch(`${API_BASE}/productos`);
+                todosLosProductos = await r.json();
+
+                // Ocultar skeletons y mostrar grilla real
+                document.getElementById('skeletonGrid').classList.add('oculto');
+                document.getElementById('productosGrid').classList.remove('oculto');
+
+                renderizarProductos(todosLosProductos);
+            } catch (e) {
+                document.getElementById('skeletonGrid').innerHTML =
+                    `<p style="color:var(--color-error);font-size:0.9rem;padding:var(--space-4) 0">No se pudo conectar con el servidor. Inicia el backend primero.</p>`;
+            }
+        }
+
+        // ----------------------------------------------------------------
+        // RENDERIZADO DEL CATALOGO
+        // ----------------------------------------------------------------
+        const EMOJIS = {
+            PERECIBLE:    '🥐',
+            BEBIDA:       '🥤',
+            NO_PERECIBLE: '🍫'
+        };
+
+        function renderizarProductos(lista) {
+            const grid = document.getElementById('productosGrid');
+            const sinRes = document.getElementById('sinResultados');
+
+            if (!lista || lista.length === 0) {
+                grid.innerHTML = '';
+                sinRes.classList.remove('oculto');
+                return;
+            }
+            sinRes.classList.add('oculto');
+
+            grid.innerHTML = lista.map(p => `
+                <button class="producto-card ${p.stock === 0 ? 'sin-stock' : ''}"
+                        onclick="agregarAlCarrito(${p.id})"
+                        aria-label="Agregar ${p.nombre} al carrito">
+                    <div class="producto-emoji">${EMOJIS[p.categoria] || '📎'}</div>
+                    <div class="producto-nombre">${p.nombre}</div>
+                    <div class="producto-precio">$${p.precio.toFixed(2)}</div>
+                    <div class="producto-stock">${p.stock > 0 ? `Stock: ${p.stock}` : 'Sin stock'}</div>
+                </button>
+            `).join('');
+        }
+
+        // ----------------------------------------------------------------
+        // FILTROS Y BUSQUEDA
+        // ----------------------------------------------------------------
+        function cambiarFiltro(btn) {
+            document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
+            btn.classList.add('activo');
+            filtroActivo = btn.dataset.cat;
+            filtrarProductos();
+        }
+
+        function filtrarProductos() {
+            const texto = document.getElementById('buscador').value.toLowerCase();
+            let lista = todosLosProductos;
+
+            if (filtroActivo !== 'TODOS') {
+                lista = lista.filter(p => p.categoria === filtroActivo);
+            }
+            if (texto) {
+                lista = lista.filter(p => p.nombre.toLowerCase().includes(texto));
+            }
+            renderizarProductos(lista);
+        }
+
+        // ----------------------------------------------------------------
+        // CARRITO
+        // ----------------------------------------------------------------
+        function agregarAlCarrito(productoId) {
+            const producto = todosLosProductos.find(p => p.id === productoId);
+            if (!producto) return;
+
+            const itemExistente = carrito.find(i => i.producto.id === productoId);
+            if (itemExistente) {
+                itemExistente.cantidad++;
+            } else {
+                carrito.push({ producto, cantidad: 1 });
+            }
+            renderizarCarrito();
+        }
+
+        function cambiarCantidad(productoId, delta) {
+            const idx = carrito.findIndex(i => i.producto.id === productoId);
+            if (idx === -1) return;
+            carrito[idx].cantidad += delta;
+            if (carrito[idx].cantidad <= 0) carrito.splice(idx, 1);
+            renderizarCarrito();
+        }
+
+        function vaciarCarrito() {
+            carrito = [];
+            renderizarCarrito();
+        }
+
+        function renderizarCarrito() {
+            const container = document.getElementById('carritoItems');
+            const vacio     = document.getElementById('carritoVacio');
+            const contador  = document.getElementById('contadorItems');
+            const btnCobrar = document.getElementById('btnCobrar');
+
+            const totalItems = carrito.reduce((s, i) => s + i.cantidad, 0);
+            contador.textContent = totalItems > 0 ? `(${totalItems})` : '';
+
+            if (carrito.length === 0) {
+                vacio.style.display = 'flex';
+                container.innerHTML = '';
+                btnCobrar.disabled = true;
+            } else {
+                vacio.style.display = 'none';
+                container.innerHTML = carrito.map(item => {
+                    const subtotal = (item.producto.precio * item.cantidad).toFixed(2);
+                    return `
+                        <div class="carrito-item">
+                            <div style="flex:1">
+                                <div class="ci-nombre">${item.producto.nombre}</div>
+                                <div class="ci-precio">$${item.producto.precio.toFixed(2)} c/u</div>
+                            </div>
+                            <div class="ci-controles">
+                                <button class="ci-btn" onclick="cambiarCantidad(${item.producto.id}, -1)"
+                                        aria-label="Reducir cantidad">-</button>
+                                <span class="ci-cantidad">${item.cantidad}</span>
+                                <button class="ci-btn" onclick="cambiarCantidad(${item.producto.id}, +1)"
+                                        aria-label="Aumentar cantidad">+</button>
+                            </div>
+                            <span class="ci-subtotal">$${subtotal}</span>
+                            <button class="ci-btn eliminar" onclick="cambiarCantidad(${item.producto.id}, -${item.cantidad})"
+                                    aria-label="Eliminar del carrito" style="margin-left:4px">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2">
+                                    <path d="M18 6L6 18M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>`;
+                }).join('');
+                btnCobrar.disabled = false;
+            }
+
+            actualizarTotal();
+            calcularVuelto();
+        }
+
+        // ----------------------------------------------------------------
+        // TOTAL Y VUELTO
+        // ----------------------------------------------------------------
+        function calcularTotal() {
+            return carrito.reduce((s, i) => s + i.producto.precio * i.cantidad, 0);
+        }
+
+        function actualizarTotal() {
+            const total = calcularTotal();
+            document.getElementById('totalDisplay').textContent = `$${total.toFixed(2)}`;
+        }
+
+        function calcularVuelto() {
+            const total    = calcularTotal();
+            const metodo   = document.getElementById('metodoPago').value;
+            const chipEl   = document.getElementById('vueltoChip');
+            const valorEl  = document.getElementById('vueltoDisplay');
+            const monto    = parseFloat(document.getElementById('montoPagado').value) || 0;
+
+            if (metodo === 'TARJETA' || carrito.length === 0) {
+                chipEl.classList.add('oculto');
+                return;
+            }
+
+            if (monto <= 0) { chipEl.classList.add('oculto'); return; }
+
+            const vuelto = monto - total;
+            chipEl.classList.remove('oculto');
+
+            if (vuelto < 0) {
+                chipEl.classList.add('insuficiente');
+                valorEl.textContent = `Faltan $${Math.abs(vuelto).toFixed(2)}`;
+            } else {
+                chipEl.classList.remove('insuficiente');
+                valorEl.textContent = `$${vuelto.toFixed(2)}`;
+            }
+        }
+
+        // ----------------------------------------------------------------
+        // COBRAR: envia la venta al backend
+        // ----------------------------------------------------------------
+        async function cobrar() {
+            if (carrito.length === 0) return;
+
+            const total    = calcularTotal();
+            const metodo   = document.getElementById('metodoPago').value;
+            const monto    = parseFloat(document.getElementById('montoPagado').value) || total;
+
+            // Validar monto en efectivo
+            if (metodo === 'EFECTIVO' && monto < total) {
+                alert('El monto recibido es menor al total. Ingresa el monto correcto.');
+                return;
+            }
+
+            const btnCobrar = document.getElementById('btnCobrar');
+            btnCobrar.disabled = true;
+            btnCobrar.innerHTML = '<div class="spinner"></div> Procesando...';
+
+            const payload = {
+                cajeroId:    CAJERO_ID,
+                metodoPago:  metodo,
+                montoPagado: metodo === 'TARJETA' ? total : monto,
+                items: carrito.map(i => ({
+                    productoId: i.producto.id,
+                    cantidad:   i.cantidad
+                }))
+            };
+
+            try {
+                const r = await fetch(`${API_BASE}/transacciones`, {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify(payload)
+                });
+
+                if (!r.ok) {
+                    const err = await r.json();
+                    throw new Error(err.error || 'Error del servidor');
+                }
+
+                const transaccion = await r.json();
+                mostrarModalExito(transaccion, total, monto, metodo);
+
+            } catch (e) {
+                alert('No se pudo registrar la venta.\nDetalle: ' + e.message);
+            } finally {
+                btnCobrar.disabled = false;
+                btnCobrar.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M20 6L9 17l-5-5"/></svg> Cobrar';
+            }
+        }
+
+        // ----------------------------------------------------------------
+        // MODAL DE EXITO
+        // ----------------------------------------------------------------
+        function mostrarModalExito(transaccion, total, monto, metodo) {
+            const vuelto = metodo === 'EFECTIVO' ? Math.max(monto - total, 0) : 0;
+            const numItems = carrito.reduce((s, i) => s + i.cantidad, 0);
+
+            document.getElementById('modalDetalle').innerHTML = `
+                <div class="modal-fila">
+                    <span class="label">ID de venta</span>
+                    <span class="valor">#${transaccion.id || '---'}</span>
+                </div>
+                <div class="modal-fila">
+                    <span class="label">Productos</span>
+                    <span class="valor">${numItems} unidades</span>
+                </div>
+                <div class="modal-fila">
+                    <span class="label">Total cobrado</span>
+                    <span class="valor">$${total.toFixed(2)}</span>
+                </div>
+                <div class="modal-fila">
+                    <span class="label">M&eacute;todo de pago</span>
+                    <span class="valor">${metodo === 'EFECTIVO' ? 'Efectivo' : 'Tarjeta'}</span>
+                </div>
+                ${vuelto > 0 ? `
+                <div class="modal-fila">
+                    <span class="label">Vuelto a entregar</span>
+                    <span class="valor verde">$${vuelto.toFixed(2)}</span>
+                </div>` : ''}
+            `;
+
+            document.getElementById('modalExito').classList.add('visible');
+            lucide.createIcons();
+        }
+
+        function nuevaVenta() {
+            document.getElementById('modalExito').classList.remove('visible');
+            vaciarCarrito();
+            document.getElementById('montoPagado').value = '';
+            document.getElementById('vueltoChip').classList.add('oculto');
+            // Recargar stocks actualizados
+            cargarProductos();
+        }
+    </script>
+</body>
+</html>
