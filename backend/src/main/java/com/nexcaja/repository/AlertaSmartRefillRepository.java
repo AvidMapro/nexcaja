@@ -1,61 +1,37 @@
 package com.nexcaja.repository;
 
 import com.nexcaja.model.AlertaSmartRefill;
-import com.nexcaja.model.Producto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import java.time.LocalDateTime;
+
 import java.util.List;
 
 /**
- * Interfaz que permite al servidor consultar, guardar y actualizar
- * las alertas del modulo Smart Refill en la base de datos.
- * Spring genera el codigo SQL necesario automaticamente a partir
- * del nombre de cada metodo.
+ * Repositorio JPA para la entidad AlertaSmartRefill.
+ *
+ * Guarda el historial de alertas que el sistema ha generado.
+ * Permite al administrador ver qué alertas fueron emitidas
+ * durante el turno y cuáles ya fueron atendidas.
  */
 @Repository
 public interface AlertaSmartRefillRepository extends JpaRepository<AlertaSmartRefill, Long> {
 
     /**
-     * Busca todas las alertas que todavia no fueron revisadas por el administrador.
-     * Estas son las que se muestran destacadas en el dashboard al inicio del dia.
+     * Devuelve las alertas que aún no han sido resueltas.
+     * El banner Smart Refill del dashboard muestra estas alertas.
+     *
+     * Spring genera: SELECT * FROM alerta_smart_refill WHERE resuelta = false
+     *
+     * @return lista de alertas pendientes de atención
      */
-    List<AlertaSmartRefill> findByEstadoAlerta(AlertaSmartRefill.EstadoAlerta estadoAlerta);
+    List<AlertaSmartRefill> findByResueltaFalse();
 
     /**
-     * Busca todas las alertas registradas en un rango de fechas.
-     * Sirve para que el administrador consulte el historial de alertas
-     * de dias o semanas anteriores.
+     * Devuelve las alertas de una categoría específica sin resolver.
+     * Útil para filtrar: "¿hay alertas de PERECIBLES sin atender?"
+     *
+     * @param categoria  categoría del producto (PERECIBLE, BEBIDA, NO_PERECIBLE)
+     * @return lista de alertas de esa categoría
      */
-    List<AlertaSmartRefill> findByFechaHoraBetween(LocalDateTime inicio, LocalDateTime fin);
-
-    /**
-     * Busca las alertas de una categoria especifica de producto.
-     * Por ejemplo: todas las alertas relacionadas con BEBIDA o PERECIBLE.
-     */
-    List<AlertaSmartRefill> findByCategoria(Producto.Categoria categoria);
-
-    /**
-     * Busca alertas de una categoria que aun no han sido revisadas.
-     * Combina los dos filtros anteriores para mostrar lo mas urgente primero.
-     */
-    List<AlertaSmartRefill> findByCategoriaAndEstadoAlerta(
-            Producto.Categoria categoria,
-            AlertaSmartRefill.EstadoAlerta estadoAlerta
-    );
-
-    /**
-     * Busca las alertas de nivel CRITICA que siguen pendientes.
-     * Estas son las que requieren atencion inmediata del administrador.
-     */
-    List<AlertaSmartRefill> findByNivelAlertaAndEstadoAlerta(
-            AlertaSmartRefill.NivelAlerta nivelAlerta,
-            AlertaSmartRefill.EstadoAlerta estadoAlerta
-    );
-
-    /**
-     * Cuenta cuantas alertas pendientes existen en total.
-     * Se usa para mostrar el contador de notificaciones en la barra del dashboard.
-     */
-    long countByEstadoAlerta(AlertaSmartRefill.EstadoAlerta estadoAlerta);
+    List<AlertaSmartRefill> findByCategoriaAndResueltaFalse(String categoria);
 }
