@@ -1,0 +1,134 @@
+# ============================================================
+# .gitignore para NexCaja
+# Proyecto: Spring Boot (Maven) + HTML/CSS/JS puro
+# Universidad Central del Ecuador
+# ============================================================
+
+# ------------------------------------------------------------
+# JAVA Y MAVEN
+# Archivos generados al compilar el proyecto con Maven.
+# Nunca deben subirse al repositorio porque se generan
+# automaticamente con el comando: mvn clean install
+# ------------------------------------------------------------
+
+# Carpeta donde Maven guarda el codigo compilado y el .jar ejecutable
+backend/target/
+
+# Archivos de configuracion local de Maven (especificos de cada maquina)
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# ------------------------------------------------------------
+# INTELLIJ IDEA
+# Archivos de configuracion del editor IntelliJ IDEA.
+# Cada desarrollador tiene su propia configuracion local,
+# por eso no deben subirse al repositorio compartido.
+# ------------------------------------------------------------
+
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# ------------------------------------------------------------
+# ECLIPSE / STS (Spring Tool Suite)
+# Archivos de configuracion del editor Eclipse y STS.
+# Al igual que IntelliJ, son especificos de cada computadora.
+# ------------------------------------------------------------
+
+.classpath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+# ------------------------------------------------------------
+# VISUAL STUDIO CODE
+# Configuraciones locales de VS Code.
+# Excepto si el equipo acuerda compartir configuraciones
+# de extensiones recomendadas (.vscode/extensions.json).
+# ------------------------------------------------------------
+
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# ------------------------------------------------------------
+# SISTEMA OPERATIVO
+# Archivos que Windows, Mac y Linux crean automaticamente
+# al navegar carpetas. No tienen nada que ver con el codigo.
+# ------------------------------------------------------------
+
+# Mac OS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ------------------------------------------------------------
+# LOGS Y ARCHIVOS TEMPORALES
+# Archivos de registro que genera la aplicacion mientras
+# esta corriendo. Se regeneran cada vez que se ejecuta.
+# ------------------------------------------------------------
+
+*.log
+logs/
+backend/logs/
+spring.log
+
+# ------------------------------------------------------------
+# VARIABLES DE ENTORNO Y SECRETOS
+# Archivos que contienen contrasenas, claves de API o
+# configuraciones privadas. NUNCA subir al repositorio.
+# ------------------------------------------------------------
+
+.env
+.env.local
+.env.production
+secrets.properties
+application-local.properties
+application-prod.properties
+
+# ------------------------------------------------------------
+# ARCHIVOS EMPAQUETADOS
+# El archivo .jar ejecutable se genera con Maven.
+# No tiene sentido guardarlo en el repositorio porque
+# cualquier persona puede generarlo con: mvn package
+# ------------------------------------------------------------
+
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# ------------------------------------------------------------
+# NODE.JS (por si en el futuro se agrega npm o herramienta de build)
+# Por ahora el frontend es HTML puro, pero se deja listo
+# para cuando se integren herramientas como npm o Vite.
+# ------------------------------------------------------------
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ------------------------------------------------------------
+# COBERTURA DE PRUEBAS
+# Reportes que generan las herramientas de pruebas automaticas.
+# Se regeneran con: mvn test
+# ------------------------------------------------------------
+
+backend/target/site/
+backend/target/surefire-reports/
