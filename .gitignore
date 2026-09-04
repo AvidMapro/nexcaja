@@ -57,26 +57,17 @@ backend/logs/
 spring.log
 
 # ------------------------------------------------------------
-# CREDENCIALES Y SECRETOS — NUNCA SUBIR AL REPO
-#
-# application.properties contiene la URL y contraseña
-# de Supabase. Si se sube a GitHub queda expuesta
-# públicamente para siempre en el historial de commits.
-#
-# Flujo correcto:
-#   1. El repo tiene application.properties con placeholders
-#   2. Cada desarrollador edita su copia LOCAL con sus credenciales
-#   3. Git nunca trackea ese archivo gracias a esta línea
+# CREDENCIALES Y CONFIGURACIÓN LOCAL
+# application.properties permanece versionado y solo usa variables de entorno.
 # ------------------------------------------------------------
-backend/src/main/resources/application.properties
-
-# Otros archivos de secretos
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
 secrets.properties
-application-local.properties
-application-prod.properties
+backend/src/main/resources/application-local.properties
+backend/src/main/resources/application-prod.properties
+backend/src/main/resources/*-local.properties
+backend/src/main/resources/*-prod.properties
 
 # ------------------------------------------------------------
 # ARCHIVOS EMPAQUETADOS

@@ -24,7 +24,7 @@ public interface AlertaSmartRefillRepository extends JpaRepository<AlertaSmartRe
      *
      * @return lista de alertas pendientes de atención
      */
-    List<AlertaSmartRefill> findByResueltaFalse();
+    List<AlertaSmartRefill> findByEstadoAlerta(AlertaSmartRefill.EstadoAlerta estadoAlerta);
 
     /**
      * Devuelve las alertas de una categoría específica sin resolver.
@@ -33,5 +33,7 @@ public interface AlertaSmartRefillRepository extends JpaRepository<AlertaSmartRe
      * @param categoria  categoría del producto (PERECIBLE, BEBIDA, NO_PERECIBLE)
      * @return lista de alertas de esa categoría
      */
-    List<AlertaSmartRefill> findByCategoriaAndResueltaFalse(String categoria);
+    List<AlertaSmartRefill> findByCategoriaAndEstadoAlerta(
+            com.nexcaja.model.Producto.Categoria categoria,
+            AlertaSmartRefill.EstadoAlerta estadoAlerta);
 }

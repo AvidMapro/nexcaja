@@ -1,159 +1,125 @@
-# NexCaja — Sistema POS Multimodal
+# NexCaja
 
-> Sistema de Punto de Venta web con reconocimiento visual y procesamiento de voz para negocios de venta rápida de alimentos.
+Sistema POS académico con backend Java y una interfaz web para gestionar productos, usuarios, ventas y reportes de cierre. El repositorio implementa la API REST y el flujo principal de caja; las integraciones de visión y voz continúan como trabajo futuro.
 
-## Integrantes del equipo
+## Estado actual
 
-| Nombre | Apellido | Rol en el proyecto |
-|--------|----------|--------------------|
-| Anthony | Manangon | Backend Java / Integración IA |
-| Gabriela | Quiroz | Frontend HTML/JS / Dashboard |
-| Zamir | Villalba | Backend Java / Base de datos |
+- Catálogo de productos con consulta, búsqueda, alta, actualización y baja lógica.
+- Registro y consulta de transacciones con validación de existencias.
+- Usuarios, inicio de sesión básico y roles de cajero y administrador.
+- Reporte de cierre y alertas preventivas de reposición.
+- Frontend HTML y JavaScript para login, caja y dashboard.
+- Persistencia con PostgreSQL; H2 se utiliza en pruebas.
 
-**Universidad Central del Ecuador — Ingeniería de Software**
+La configuración actual de Spring Security permite el acceso a los endpoints durante esta fase académica. No debe considerarse una configuración lista para producción.
 
----
+## Arquitectura
 
-## ¿Qué es NexCaja?
-
-NexCaja es un sistema de caja registradora web que permite al cajero cobrar productos **sin tocar el teclado**, usando:
-
-- 📷 **Cámara web** para identificar los productos colocados frente al dispositivo (visión computacional con YOLOv8)
-- 🎤 **Micrófono** para recibir comandos de voz del operador (reconocimiento de voz con Whisper AI)
-- 📊 **Dashboard Smart Refill** que al cierre del turno analiza la rotación de inventario y emite alertas preventivas para productos perecibles
-
----
-
-## Arquitectura del sistema
-
-```
-[Navegador del cajero]
-        |
-   HTTP / WebSocket
-        |
-[Servidor Java - Spring Boot]  <---HTTP--->  [Microservicio Python - YOLOv8] (Fase 2)
-        |
-   JPA / SQL
-        |
-[Base de datos H2 (desarrollo) / PostgreSQL (producción)]
+```text
+frontend HTML y JavaScript
+          |
+          | HTTP JSON
+          v
+Spring Boot REST API
+  controller -> service -> repository
+          |
+          v
+PostgreSQL
 ```
 
----
+Las integraciones planificadas con YOLOv8 y Whisper no están implementadas en este repositorio.
 
-## Tecnologías utilizadas
+## Tecnologías verificadas
 
-| Capa | Tecnología | Versión |
-|------|------------|---------|
-| Backend | Java + Spring Boot | Java 17, Spring Boot 3.x |
-| Base de datos (dev) | H2 In-Memory | - |
-| Base de datos (prod) | PostgreSQL | 15+ |
-| Frontend | HTML5 + JavaScript puro | - |
-| Build tool | Maven | 3.x |
-| Control de versiones | Git + GitHub | - |
-| IA Visión (Fase 2) | Python + YOLOv8 | Ultralytics 8.x |
-| IA Voz (Fase 2) | Whisper AI (WebAssembly) | Modelo Small |
+- Java 17 y Spring Boot 3.2
+- Spring Web, Spring Data JPA y Spring Security
+- PostgreSQL y H2 para pruebas
+- Maven
+- HTML y JavaScript
 
----
+## Equipo y rol
 
-## Estructura del repositorio
+| Integrante | Rol |
+| --- | --- |
+| Anthony Manangón | Backend Java e integración de IA planificada |
+| Gabriela Quiroz | Frontend HTML y JavaScript y dashboard |
+| Zamir Villalba | Backend Java y base de datos |
 
-```
-nexcaja/
-├── README.md
-├── backend/
-│   ├── pom.xml                          ← Dependencias Maven
-│   └── src/
-│       └── main/
-│           ├── java/com/nexcaja/
-│           │   ├── NexCajaApplication.java        ← Punto de entrada
-│           │   ├── controller/                    ← Endpoints REST
-│           │   │   ├── ProductoController.java
-│           │   │   ├── TransaccionController.java
-│           │   │   └── UsuarioController.java
-│           │   ├── model/                         ← Entidades de base de datos
-│           │   │   ├── Producto.java
-│           │   │   ├── Usuario.java
-│           │   │   ├── Transaccion.java
-│           │   │   └── DetalleTransaccion.java
-│           │   ├── repository/                    ← Acceso a datos (JPA)
-│           │   │   ├── ProductoRepository.java
-│           │   │   ├── TransaccionRepository.java
-│           │   │   └── UsuarioRepository.java
-│           │   └── service/                       ← Lógica del negocio
-│           │       ├── ProductoService.java
-│           │       ├── TransaccionService.java
-│           │       └── UsuarioService.java
-│           └── resources/
-│               ├── application.properties         ← Configuración del servidor
-│               └── data.sql                       ← Datos de prueba iniciales
-└── frontend/
-    ├── index.html                                 ← Pantalla de inicio de sesión
-    ├── pos.html                                   ← Interfaz del cajero
-    ├── admin.html                                 ← Panel del administrador
-    ├── css/
-    │   └── styles.css                             ← Estilos globales
-    └── js/
-        ├── auth.js                                ← Lógica de autenticación
-        ├── pos.js                                 ← Lógica de la caja registradora
-        └── admin.js                               ← Lógica del panel admin
+Proyecto universitario de la Universidad Central del Ecuador.
+
+## Estructura
+
+```text
+backend/
+  pom.xml
+  src/main/java/com/nexcaja/
+    config/       Configuración y datos iniciales
+    controller/   Endpoints REST
+    model/        Entidades JPA
+    repository/   Acceso a datos
+    service/      Lógica de negocio
+  src/main/resources/
+frontend/
+  login.html
+  caja.html
+  dashboard.html
+  js/api.js
 ```
 
----
+## Configuración
 
-## Cómo ejecutar el proyecto en local
+La aplicación no contiene credenciales versionadas. Define estas variables de entorno antes de iniciarla:
 
-### Requisitos previos
-- Java 17 instalado
-- Maven 3.x instalado
-- Un navegador moderno (Chrome o Firefox)
+| Variable | Requerida | Propósito |
+| --- | --- | --- |
+| `DB_URL` | Sí | URL JDBC de PostgreSQL |
+| `DB_USERNAME` | Sí | Usuario de la base de datos |
+| `DB_PASSWORD` | Sí | Contraseña de la base de datos |
+| `SERVER_PORT` | No | Puerto HTTP, `8080` por defecto |
+| `JPA_DDL_AUTO` | No | Estrategia de esquema, `update` por defecto |
+| `JPA_SHOW_SQL` | No | Muestra SQL, `false` por defecto |
+| `DB_POOL_MAX` | No | Máximo de conexiones, `3` por defecto |
+| `DB_POOL_MIN` | No | Conexiones inactivas mínimas, `1` por defecto |
+| `APP_LOG_LEVEL` | No | Nivel de log de la aplicación |
+| `APP_SEED_ENABLED` | No | Activa datos de demostración; `false` por defecto |
+| `APP_SEED_PASSWORD` | Condicional | Obligatoria si se activan los usuarios de demostración |
 
-### Pasos
+Consulta `.env.example` como referencia. No copies credenciales reales al repositorio.
+
+## Ejecución local
+
+Requisitos: JDK 17, Maven 3 y PostgreSQL.
 
 ```bash
-# 1. Clonar el repositorio
 git clone https://github.com/AvidMapro/nexcaja.git
-cd nexcaja
+cd nexcaja/backend
 
-# 2. Ir al directorio del backend
-cd backend
+export DB_URL='jdbc:postgresql://localhost:5432/nexcaja'
+export DB_USERNAME='postgres'
+export DB_PASSWORD='tu_clave_local'
 
-# 3. Compilar y ejecutar el servidor
 mvn spring-boot:run
-
-# 4. Abrir el frontend en el navegador
-# Abrir el archivo frontend/index.html directamente en el navegador
-# O acceder a http://localhost:8080 si el servidor sirve los archivos estáticos
 ```
 
-### Credenciales de prueba
+Abre `frontend/login.html` desde un servidor estático local. La capa de acceso al backend está centralizada en `frontend/js/api.js` y usa `http://localhost:8080/api`.
 
-| Usuario | Contraseña | Rol |
-|---------|------------|-----|
-| cajero1 | nexcaja123 | Cajero |
-| admin | admin123 | Administrador |
+## Pruebas
 
----
+Las pruebas usan H2 y no requieren PostgreSQL ni credenciales externas.
 
-## Estado del desarrollo
+```bash
+cd backend
+mvn test
+```
 
-- [x] Estructura del proyecto creada
-- [x] Modelos de base de datos definidos
-- [x] API REST de productos
-- [x] API REST de transacciones
-- [x] API REST de usuarios
-- [x] Frontend: pantalla de login
-- [x] Frontend: interfaz POS del cajero
-- [x] Frontend: panel de administración
-- [ ] Integración con YOLOv8 (Fase 2)
-- [ ] Integración con Whisper AI (Fase 2)
-- [ ] Dashboard Smart Refill completo
-- [ ] Despliegue en producción
+## Roadmap
 
----
+- [ ] Proteger contraseñas de usuario con un algoritmo de hash adecuado.
+- [ ] Restringir endpoints y completar autenticación para producción.
+- [ ] Integrar reconocimiento visual con YOLOv8.
+- [ ] Integrar comandos de voz con Whisper.
+- [ ] Ampliar las pruebas automatizadas y preparar despliegue.
 
-## Convenciones del código
+## Seguridad
 
-- Todos los comentarios están escritos en **español, en lenguaje natural**
-- Los nombres de clases y métodos están en **inglés** (convención Java)
-- Los endpoints REST siguen el estándar **REST** con verbos HTTP correctos
-- Cada clase tiene un comentario en la cabecera explicando su propósito
+Toda conexión externa se configura mediante variables de entorno. Si una credencial fue versionada anteriormente, debe rotarse en el proveedor aunque el historial de Git se haya limpiado, porque clones o forks antiguos pueden conservarla.

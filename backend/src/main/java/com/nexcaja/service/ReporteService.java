@@ -1,6 +1,7 @@
 package com.nexcaja.service;
 
 import com.nexcaja.model.AlertaSmartRefill;
+import com.nexcaja.model.Producto;
 import com.nexcaja.repository.AlertaSmartRefillRepository;
 import com.nexcaja.repository.DetalleTransaccionRepository;
 import com.nexcaja.repository.TransaccionRepository;
@@ -73,7 +74,8 @@ public class ReporteService {
 
         // Ejecutar el motor Smart Refill y obtener alertas
         List<AlertaSmartRefill> alertasGeneradas = ejecutarSmartRefill();
-        List<AlertaSmartRefill> alertasPendientes = alertaRepository.findByResueltaFalse();
+        List<AlertaSmartRefill> alertasPendientes = alertaRepository.findByEstadoAlerta(
+                AlertaSmartRefill.EstadoAlerta.PENDIENTE);
 
         // Construir el reporte final
         Map<String, Object> reporte = new LinkedHashMap<>();
@@ -116,29 +118,35 @@ public class ReporteService {
         List<AlertaSmartRefill> alertasNuevas = new ArrayList<>();
 
         for (Object[] pico : picos) {
-            String categoria   = pico[0].toString();
+            Producto.Categoria categoria = Producto.Categoria.valueOf(pico[0].toString());
             long   unidades    = ((Number) pico[1]).longValue();
 
             // Solo generar alerta si supera el umbral
             if (unidades >= UMBRAL_PICO) {
                 // Verificar que no exista ya una alerta pendiente para esta categoría
                 List<AlertaSmartRefill> existentes =
-                        alertaRepository.findByCategoriaAndResueltaFalse(categoria);
+                        alertaRepository.findByCategoriaAndEstadoAlerta(
+                                categoria, AlertaSmartRefill.EstadoAlerta.PENDIENTE);
 
                 if (existentes.isEmpty()) {
                     // ¡Pico detectado! Crear y guardar la alerta
                     AlertaSmartRefill alerta = new AlertaSmartRefill();
                     alerta.setFechaHora(ahora);
                     alerta.setCategoria(categoria);
-                    alerta.setTipoAlerta("PICO_VENTAS");
-                    alerta.setDescripcion(
+                    alerta.setVolumenVentas(Math.toIntExact(unidades));
+                    alerta.setUmbralNormal(UMBRAL_PICO);
+                    alerta.setNivelAlerta(
+                            unidades > Math.round(UMBRAL_PICO * 1.5)
+                                    ? AlertaSmartRefill.NivelAlerta.CRITICA
+                                    : AlertaSmartRefill.NivelAlerta.PREVENTIVA);
+                    alerta.setMensaje(
                         String.format(
                             "[SMART REFILL] Pico detectado en %s: %d unidades vendidas " +
                             "en la última hora (umbral: %d). Considere reabastecer el exhibidor.",
                             categoria, unidades, UMBRAL_PICO
                         )
                     );
-                    alerta.setResuelta(false);
+                    alerta.setEstadoAlerta(AlertaSmartRefill.EstadoAlerta.PENDIENTE);
                     alertasNuevas.add(alertaRepository.save(alerta));
                 }
             }
@@ -157,7 +165,7 @@ public class ReporteService {
      * @return lista de alertas pendientes
      */
     public List<AlertaSmartRefill> obtenerAlertasPendientes() {
-        return alertaRepository.findByResueltaFalse();
+        return alertaRepository.findByEstadoAlerta(AlertaSmartRefill.EstadoAlerta.PENDIENTE);
     }
 
     /**
@@ -172,7 +180,8 @@ public class ReporteService {
         AlertaSmartRefill alerta = alertaRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "No existe una alerta con ID: " + id));
-        alerta.setResuelta(true);
+        alerta.setEstadoAlerta(AlertaSmartRefill.EstadoAlerta.REVISADA);
+        alerta.setNotaAdministrador(nota);
         return alertaRepository.save(alerta);
     }
 

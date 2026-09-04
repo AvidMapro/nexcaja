@@ -6,6 +6,7 @@ import com.nexcaja.repository.ProductoRepository;
 import com.nexcaja.repository.UsuarioRepository;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -24,6 +25,12 @@ import java.util.List;
 @Component
 public class DataLoader implements ApplicationRunner {
 
+    @Value("${app.seed.enabled:false}")
+    private boolean seedEnabled;
+
+    @Value("${app.seed.password:}")
+    private String seedPassword;
+
     private final UsuarioRepository  usuarioRepo;
     private final ProductoRepository productoRepo;
 
@@ -35,6 +42,13 @@ public class DataLoader implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
+        if (!seedEnabled) {
+            return;
+        }
+        if (seedPassword.isBlank()) {
+            throw new IllegalStateException(
+                    "APP_SEED_PASSWORD es obligatoria cuando APP_SEED_ENABLED=true");
+        }
         cargarUsuarios();
         cargarProductos();
         System.out.println("\n");
@@ -57,24 +71,24 @@ public class DataLoader implements ApplicationRunner {
             // Administradores
             Usuario.builder()
                 .nombre("Carlos").apellido("Mendoza")
-                .nombreUsuario("admin").contrasena("admin123")
-                .rol("ADMIN").activo(true)
+                .nombreUsuario("admin").contrasena(seedPassword)
+                .rol(Usuario.Rol.ADMIN).activo(true)
                 .build(),
             Usuario.builder()
                 .nombre("Ana").apellido("Torres")
-                .nombreUsuario("ana.torres").contrasena("admin123")
-                .rol("ADMIN").activo(true)
+                .nombreUsuario("ana.torres").contrasena(seedPassword)
+                .rol(Usuario.Rol.ADMIN).activo(true)
                 .build(),
             // Cajeros
             Usuario.builder()
                 .nombre("Juan").apellido("Rodríguez")
-                .nombreUsuario("juan.rodriguez").contrasena("caja123")
-                .rol("CAJERO").activo(true)
+                .nombreUsuario("juan.rodriguez").contrasena(seedPassword)
+                .rol(Usuario.Rol.CAJERO).activo(true)
                 .build(),
             Usuario.builder()
                 .nombre("María").apellido("López")
-                .nombreUsuario("maria.lopez").contrasena("caja123")
-                .rol("CAJERO").activo(true)
+                .nombreUsuario("maria.lopez").contrasena(seedPassword)
+                .rol(Usuario.Rol.CAJERO).activo(true)
                 .build()
         );
         usuarioRepo.saveAll(usuarios);
@@ -92,67 +106,67 @@ public class DataLoader implements ApplicationRunner {
             // --- PERECIBLES ---
             Producto.builder()
                 .nombre("Empanada de queso").precio(0.50)
-                .categoria("PERECIBLE").stock(45).activo(true)
+                .categoria(Producto.Categoria.PERECIBLE).stock(45).activo(true)
                 .build(),
             Producto.builder()
                 .nombre("Empanada de carne").precio(0.60)
-                .categoria("PERECIBLE").stock(38).activo(true)
+                .categoria(Producto.Categoria.PERECIBLE).stock(38).activo(true)
                 .build(),
             Producto.builder()
                 .nombre("Yogur de fresa 150g").precio(0.75)
-                .categoria("PERECIBLE").stock(22).activo(true)
+                .categoria(Producto.Categoria.PERECIBLE).stock(22).activo(true)
                 .build(),
             Producto.builder()
                 .nombre("Pan de molde").precio(1.20)
-                .categoria("PERECIBLE").stock(15).activo(true)
+                .categoria(Producto.Categoria.PERECIBLE).stock(15).activo(true)
                 .build(),
             Producto.builder()
                 .nombre("Sándwich de jamón").precio(1.50)
-                .categoria("PERECIBLE").stock(12).activo(true)
+                .categoria(Producto.Categoria.PERECIBLE).stock(12).activo(true)
                 .build(),
 
             // --- BEBIDAS ---
             Producto.builder()
                 .nombre("Coca-Cola 500ml").precio(0.85)
-                .categoria("BEBIDA").stock(60).activo(true)
+                .categoria(Producto.Categoria.BEBIDA).stock(60).activo(true)
                 .build(),
             Producto.builder()
                 .nombre("Agua pura 500ml").precio(0.35)
-                .categoria("BEBIDA").stock(80).activo(true)
+                .categoria(Producto.Categoria.BEBIDA).stock(80).activo(true)
                 .build(),
             Producto.builder()
                 .nombre("Jugo de naranja 250ml").precio(0.65)
-                .categoria("BEBIDA").stock(30).activo(true)
+                .categoria(Producto.Categoria.BEBIDA).stock(30).activo(true)
                 .build(),
             Producto.builder()
                 .nombre("Leche entera 200ml").precio(0.45)
-                .categoria("BEBIDA").stock(25).activo(true)
+                .categoria(Producto.Categoria.BEBIDA).stock(25).activo(true)
                 .build(),
             Producto.builder()
                 .nombre("Té frío de durazno").precio(0.70)
-                .categoria("BEBIDA").stock(18).activo(true)
+                .categoria(Producto.Categoria.BEBIDA).stock(18).activo(true)
                 .build(),
 
             // --- NO PERECIBLES ---
             Producto.builder()
                 .nombre("Chicles Trident").precio(0.25)
-                .categoria("NO_PERECIBLE").stock(100).activo(true)
+                .categoria(Producto.Categoria.NO_PERECIBLE).stock(100).activo(true)
                 .build(),
             Producto.builder()
                 .nombre("Galletas Oreo").precio(0.45)
-                .categoria("NO_PERECIBLE").stock(55).activo(true)
+                .categoria(Producto.Categoria.NO_PERECIBLE).stock(55).activo(true)
                 .build(),
             Producto.builder()
                 .nombre("Chocolate Snickers").precio(0.80)
-                .categoria("NO_PERECIBLE").stock(40).activo(true)
+                .categoria(Producto.Categoria.NO_PERECIBLE).stock(40).activo(true)
                 .build(),
             Producto.builder()
                 .nombre("Papas Lays 40g").precio(0.55)
-                .categoria("NO_PERECIBLE").stock(48).activo(true)
+                .categoria(Producto.Categoria.NO_PERECIBLE).stock(48).activo(true)
                 .build(),
             Producto.builder()
                 .nombre("Gomitas Trolli").precio(0.35)
-                .categoria("NO_PERECIBLE").stock(70).activo(true)
+                .categoria(Producto.Categoria.NO_PERECIBLE).stock(70).activo(true)
                 .build()
         );
         productoRepo.saveAll(productos);
